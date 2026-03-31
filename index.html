@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -14,10 +13,9 @@
             --bg: #fdfaf6;
             --white: #ffffff;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { height: 100%; }
-        html { font-size: 15px; } /* base menor */
+        html { font-size: 15px; }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             background-color: var(--bg);
@@ -26,8 +24,6 @@
             overflow: hidden;
             line-height: 1.25;
         }
-
-        /* SIDEBAR */
        .sidebar {
             width: 230px;
             background-color: var(--dark-brown);
@@ -70,8 +66,6 @@
        .nav-btn:hover { background-color: var(--strong-yellow); color: var(--dark-brown); transform: translateX(4px); }
        .nav-btn:active { transform: translateX(4px) scale(0.97); }
        .nav-btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
-        /* CONTEÚDO PRINCIPAL */
        .main-content {
             margin-left: 250px;
             flex: 1;
@@ -89,9 +83,7 @@
             border-bottom: 3px solid var(--accent-gold);
             display: inline-block; padding-bottom: 4px;
         }
-
        .container { display: flex; gap: 16px; align-items: flex-start; max-width: 1200px; margin: 0 auto; }
-
        .menu-col { flex: 2; padding-bottom: 24px; min-width: 0; }
        .category-section {
             background: var(--white);
@@ -102,7 +94,6 @@
             border-left: 6px solid var(--dark-brown);
         }
        .category-section h3 { font-size: 1.05rem; color: var(--dark-brown); margin: 0 0 10px; }
-
        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
        .item-card {
             background: #fcfcfc; border: 1px solid #eee; padding: 10px 12px; border-radius: 10px;
@@ -111,14 +102,12 @@
         }
        .item-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
        .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
        .controls { display: inline-flex; align-items: center; gap: 6px; }
        .qty-input {
             width: 56px; height: 38px; border: 1px solid #e3e3e3; border-radius: 9px; text-align: center;
             font-weight: 800; font-size: 1rem; background: #fff;
         }
        .qty-input:focus { outline: 2px solid var(--accent-gold); outline-offset: 1px; }
-
        .add-btn-menu {
             background: var(--strong-yellow); color: var(--dark-brown); border: none; border-radius: 9px;
             width: 44px; height: 38px; cursor: pointer; font-weight: 900; font-size: 1.25rem; line-height: 1;
@@ -129,8 +118,6 @@
        .add-btn-menu:hover { filter: brightness(1.05); }
        .add-btn-menu:active { transform: scale(0.94); box-shadow: 0 1px 0 rgba(0,0,0,0.25) inset; }
        .add-btn-menu:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
-        /* SACOLA */
        .cart-col {
             flex: 1;
             position: sticky;
@@ -146,9 +133,7 @@
             min-width: 0;
         }
        .cart-col h3 { font-size: 1.1rem; margin: 0 0 10px; }
-
         #cartList { flex: 1; overflow-y: auto; padding-right: 4px; margin-bottom: 10px; }
-
        .cart-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f2f2f2; }
        .qty-controls { display: flex; align-items: center; gap: 6px; }
        .qty-btn {
@@ -158,10 +143,8 @@
        .qty-btn:hover { background: #e5e5e5; }
        .qty-btn:active { transform: scale(0.94); }
        .qty-btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
        .qty-badge { font-weight: 900; color: var(--dark-brown); min-width: 24px; text-align: center; font-size: 1.05rem; }
        .item-name-cart { font-size:.98rem; flex: 1; margin-left: 6px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
        .remove-btn {
             color: #d32f2f; cursor: pointer; font-weight: 900; font-size: 1.4rem; margin-left: 4px;
             display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px;
@@ -169,7 +152,6 @@
         }
        .remove-btn:hover { background: #ffe5e5; }
        .remove-btn:active { transform: scale(0.92); }
-
        .actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; border-top: 2px solid #eee; padding-top: 10px; }
        .btn {
             padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 900; font-size:.98rem;
@@ -183,13 +165,9 @@
        .btn-whatsapp { background: var(--whatsapp); color: white; }
        .btn-print { background: #455a64; color: white; }
        .btn-clear { background: #f5f5f5; color: #777; font-size:.95rem; }
-
         @keyframes tap { 0% { transform: scale(0.96); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
        .tap { animation: tap 160ms ease-out; }
-
        .print-header { display: none; }
-
-        /* ---------- RESPONSIVO ---------- */
         @media (max-width: 1200px) {
            .item-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         }
@@ -208,7 +186,6 @@
            .nav-btn { padding: 8px 10px; font-size:.85rem; border-radius: 999px; }
            .nav-btn:hover { transform: translateY(-1px); }
            .nav-btn:active { transform: translateY(-1px) scale(0.97); }
-
            .main-content { margin-left: 0; padding: 12px; height: auto; }
            .container { flex-direction: column; gap: 12px; }
            .cart-col { position: static; height: auto; order: 2; }
@@ -219,7 +196,7 @@
            .add-btn-menu { width: 48px; height: 40px; font-size: 1.3rem; }
         }
         @media (max-width: 640px) {
-            html { font-size: 14px; } /* aperta mais um pouco */
+            html { font-size: 14px; }
            .item-grid { grid-template-columns: 1fr; }
            .category-section { padding: 12px; margin-bottom: 12px; }
            .btn { padding: 14px; font-size: 1rem; }
@@ -228,7 +205,6 @@
            .nav-btn { font-size:.8rem; padding: 7px 9px; }
            .item-card { font-size:.95rem; }
         }
-
         @media print {
            .sidebar,.header,.menu-col,.add-btn-menu,.qty-btn,.remove-btn,.actions,.qty-input { display: none!important; }
             body { background: #fff; height: auto; overflow: visible; display: block; }
@@ -244,31 +220,25 @@
     </style>
 </head>
 <body>
-
     <div class="sidebar">
         <h2>CATEGORIAS</h2>
         <div class="nav-list" id="navButtons"></div>
     </div>
-
     <div class="main-content">
         <div class="header">
             <h1>📋 Lista de Compras Automática</h1>
         </div>
-
         <div class="container">
             <div class="menu-col" id="menu"></div>
-
             <div class="cart-col">
                 <div class="print-header">
                     <h1>Lista de Compras</h1>
                     <p id="printDate"></p>
                 </div>
-
                 <h3 style="margin:0 0 10px 0">Sua Sacola <span id="counter" style="float:right; color:var(--accent-gold)">0</span></h3>
                 <div id="cartList">
                     <p style="color:#999; text-align:center; margin-top:48px; font-size: 1rem;">Selecione os produtos...</p>
                 </div>
-
                 <div class="actions">
                     <button class="btn btn-whatsapp" id="btnWhats">📱 Enviar WhatsApp</button>
                     <button class="btn btn-print" id="btnPrint">🖨️ Imprimir / PDF</button>
@@ -277,7 +247,6 @@
             </div>
         </div>
     </div>
-
 <script>
   const inventory = {
     "PRINCIPAL": ["Rolos de Massa","Carne moída","Carne louca","Carne seca (Jabá)","Costela bovina","Frango desfiado","Coxinha","Risole","Bolinha de queijo","Churros"],
@@ -287,21 +256,17 @@
     "DOCES": ["Beijinho","Bis (Preto e Branco)","Bombom Ouro Branco","Bombom Sonho de Valsa","Brigadeiro","Chocoboll","Chocolate ao leite","Chocolate branco","Coco ralado","Creme de avelã (Buello/Nutella)","Doce de leite","Goiabada","Granulado","Leite em pó (Ninho)","Paçoca"],
     "MERCADO": ["Alho-poró","Azeitona","Açaí (Base)","Batata palha","Brócolis","Calabresa","Catupiry original","Champignon","Cheddar comum","Cheddar Polenghi","Scalon ou tirolez","Ervilha","Granola","Leite condensado","Lombo suíno","Milho verde","Mussarela","Orégano","Ovo cozido","Palmito (Pupunha)","Pimenta","Presunto","Purê de batata","Requeijão culinário (Comum)","Requeijão Coronata()","Salsicha"]
   };
-
   const STORAGE_KEY = 'lista-jefferson-v2';
-  let cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-
+  let cart = {};
+  try { cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { cart = {}; }
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)); }
   function tap(el){ el.classList.remove('tap'); void el.offsetWidth; el.classList.add('tap'); }
-
   function init() {
     const menu = document.getElementById('menu');
     const nav = document.getElementById('navButtons');
     menu.innerHTML = ''; nav.innerHTML = '';
-
     Object.keys(inventory).forEach(cat => {
       const totalItens = inventory[cat].length;
-
       const btn = document.createElement('button');
       btn.className = 'nav-btn';
       btn.textContent = `${cat} (${totalItens})`;
@@ -310,14 +275,12 @@
         document.getElementById('cat-' + cat)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       nav.appendChild(btn);
-
       const section = document.createElement('div');
       section.className = 'category-section';
       section.id = 'cat-' + cat;
       section.innerHTML = `<h3>${cat} <span style="color:#777;font-weight:600">(${totalItens} itens)</span></h3><div class="item-grid"></div>`;
       const grid = section.querySelector('.item-grid');
-
-      inventory[cat].slice().sort().forEach((item) => {
+      inventory[cat].slice().sort((a,b)=>a.localeCompare(b,'pt-BR')).forEach((item) => {
         const card = document.createElement('div');
         card.className = 'item-card';
         card.innerHTML = `
@@ -332,7 +295,6 @@
       });
       menu.appendChild(section);
     });
-
     menu.addEventListener('click', (e) => {
       const btn = e.target.closest('.add-btn-menu');
       if (!btn) return;
@@ -342,7 +304,6 @@
       if (isNaN(q) || q < 1) q = 1;
       addToCart(btn.dataset.item, btn.dataset.cat, q);
     });
-
     menu.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.target.classList.contains('qty-input')) {
         const controls = e.target.closest('.controls');
@@ -350,7 +311,6 @@
         btn?.click();
       }
     });
-
     document.getElementById('cartList').addEventListener('click', (e) => {
       const t = e.target;
       if (t.classList.contains('qty-btn')) {
@@ -361,14 +321,11 @@
         removeFromCart(t.dataset.name);
       }
     });
-
     document.getElementById('btnWhats').addEventListener('click', (e)=>{ tap(e.currentTarget); sendWhatsApp(); });
     document.getElementById('btnPrint').addEventListener('click', (e)=>{ tap(e.currentTarget); preparePrint(); window.print(); });
     document.getElementById('btnClear').addEventListener('click', (e)=>{ tap(e.currentTarget); clearCart(); });
-
     renderCart();
   }
-
   function addToCart(name, cat, qty = 1) {
     cart[name] = cart[name]? {...cart[name], qty: cart[name].qty + qty } : { name, cat, qty };
     save(); renderCart();
@@ -381,23 +338,19 @@
   }
   function removeFromCart(name) { delete cart[name]; save(); renderCart(); }
   function clearCart() { if (confirm("Deseja limpar toda a sacola?")) { cart = {}; save(); renderCart(); } }
-
   function renderCart() {
     const listDiv = document.getElementById('cartList');
     const counter = document.getElementById('counter');
     const items = Object.values(cart);
     counter.textContent = items.reduce((total, item) => total + item.qty, 0);
-
     if (items.length === 0) {
       listDiv.innerHTML = '<p style="color:#999; text-align:center; margin-top:48px; font-size: 1rem;">Selecione os produtos...</p>';
       return;
     }
-
     const grouped = items.reduce((acc, item) => {
       (acc[item.cat] ||= []).push(item);
       return acc;
     }, {});
-
     let html = '';
     for (const cat in grouped) {
       html += `<div style="color:var(--accent-gold); font-weight:bold; margin-top:10px; font-size:0.8rem; text-transform:uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px;">${cat}</div>`;
@@ -416,13 +369,11 @@
     }
     listDiv.innerHTML = html;
   }
-
   function preparePrint() {
     const d = new Date();
     const el = document.getElementById('printDate');
     if (el) el.textContent = d.toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short' });
   }
-
   function sendWhatsApp() {
     const items = Object.values(cart);
     if (items.length === 0) return alert("Sua sacola está vazia!");
@@ -435,444 +386,7 @@
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   }
-
   init();
 </script>
-
 </body>
-=======
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Compras Luxo - Jefferson</title>
-    <style>
-        :root {
-            --dark-brown: #1a0f0d;
-            --strong-yellow: #ffea00;
-            --accent-gold: #d4af37;
-            --whatsapp: #25d366;
-            --bg: #fdfaf6;
-            --white: #ffffff;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* SIDEBAR */
-       .sidebar {
-            width: 250px;
-            background-color: var(--dark-brown);
-            display: flex;
-            flex-direction: column;
-            padding: 20px 15px;
-            box-shadow: 3px 0 15px rgba(0,0,0,0.4);
-            position: fixed;
-            height: 100%;
-            z-index: 10;
-            overflow-y: auto;
-        }
-       .sidebar h2 {
-            color: var(--strong-yellow);
-            font-size: 1.1rem;
-            text-align: center;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-            letter-spacing: 1.5px;
-            border-bottom: 2px solid #3e2723;
-            padding-bottom: 10px;
-        }
-       .nav-list { display: flex; flex-direction: column; gap: 12px; }
-       .nav-btn {
-            background-color: #2b1d1a;
-            border: 1px solid #3e2723;
-            color: var(--strong-yellow);
-            padding: 14px 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 800;
-            font-size:.98rem;
-            text-transform: uppercase;
-            transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s;
-            will-change: transform;
-            touch-action: manipulation;
-            white-space: nowrap;
-        }
-       .nav-btn:hover { background-color: var(--strong-yellow); color: var(--dark-brown); transform: translateX(6px); }
-       .nav-btn:active { transform: translateX(6px) scale(0.97); }
-       .nav-btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
-        /* CONTEÚDO PRINCIPAL */
-       .main-content {
-            margin-left: 280px;
-            flex: 1;
-            padding: 22px;
-            height: 100vh;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-       .header { text-align: center; margin-bottom: 24px; }
-       .header h1 { margin: 0; color: var(--dark-brown); font-size: 2rem; border-bottom: 4px solid var(--accent-gold); display: inline-block; padding-bottom: 5px; }
-
-       .container { display: flex; gap: 24px; align-items: flex-start; }
-
-       .menu-col { flex: 2; padding-bottom: 40px; min-width: 0; }
-       .category-section {
-            background: var(--white);
-            border-radius: 15px;
-            padding: 18px;
-            margin-bottom: 22px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left: 8px solid var(--dark-brown);
-        }
-       .category-section h3 { font-size: 1.25rem; color: var(--dark-brown); margin: 0 0 14px; }
-
-       .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-       .item-card {
-            background: #fcfcfc; border: 1px solid #eee; padding: 12px 14px; border-radius: 12px;
-            display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
-            font-size: 1.02rem; font-weight: 600;
-        }
-       .item-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-       .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-       .controls { display: inline-flex; align-items: center; gap: 8px; }
-       .qty-input {
-            width: 64px; height: 44px; border: 1px solid #e3e3e3; border-radius: 10px; text-align: center;
-            font-weight: 800; font-size: 1.05rem; background: #fff;
-        }
-       .qty-input:focus { outline: 2px solid var(--accent-gold); outline-offset: 1px; }
-
-       .add-btn-menu {
-            background: var(--strong-yellow); color: var(--dark-brown); border: none; border-radius: 10px;
-            width: 48px; height: 44px; cursor: pointer; font-weight: 900; font-size: 1.5rem; line-height: 1;
-            transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.2s;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.25);
-            touch-action: manipulation;
-        }
-       .add-btn-menu:hover { filter: brightness(1.05); }
-       .add-btn-menu:active { transform: scale(0.94); box-shadow: 0 1px 0 rgba(0,0,0,0.25) inset; }
-       .add-btn-menu:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
-        /* SACOLA */
-       .cart-col {
-            flex: 1;
-            position: sticky;
-            top: 0;
-            background: var(--white);
-            border-radius: 15px;
-            padding: 18px;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.12);
-            border-top: 6px solid var(--accent-gold);
-            height: calc(100vh - 80px);
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-       .cart-col h3 { font-size: 1.25rem; margin: 0 0 12px; }
-
-        #cartList { flex: 1; overflow-y: auto; padding-right: 6px; margin-bottom: 14px; }
-
-       .cart-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f2f2f2; }
-       .qty-controls { display: flex; align-items: center; gap: 8px; }
-       .qty-btn {
-            background: #eee; border: none; width: 40px; height: 40px; cursor: pointer; border-radius: 10px; font-weight: 900; font-size: 1.2rem;
-            transition: transform 0.08s ease, background-color 0.2s; touch-action: manipulation;
-        }
-       .qty-btn:hover { background: #e5e5e5; }
-       .qty-btn:active { transform: scale(0.94); }
-       .qty-btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-
-       .qty-badge { font-weight: 900; color: var(--dark-brown); min-width: 28px; text-align: center; font-size: 1.2rem; }
-       .item-name-cart { font-size: 1.02rem; flex: 1; margin-left: 8px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-       .remove-btn {
-            color: #d32f2f; cursor: pointer; font-weight: 900; font-size: 1.6rem; margin-left: 6px;
-            display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px;
-            transition: transform 0.08s ease, background-color 0.2s; touch-action: manipulation;
-        }
-       .remove-btn:hover { background: #ffe5e5; }
-       .remove-btn:active { transform: scale(0.92); }
-
-       .actions { margin-top: auto; display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #eee; padding-top: 14px; }
-       .btn {
-            padding: 16px; border: none; border-radius: 12px; cursor: pointer; font-weight: 900; font-size: 1.05rem;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: transform 0.08s ease, filter 0.2s, box-shadow 0.12s ease;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15); touch-action: manipulation;
-        }
-       .btn:hover { filter: brightness(1.03); }
-       .btn:active { transform: translateY(1px) scale(0.99); box-shadow: 0 1px 0 rgba(0,0,0,0.15) inset; }
-       .btn:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 2px; }
-       .btn-whatsapp { background: var(--whatsapp); color: white; }
-       .btn-print { background: #455a64; color: white; }
-       .btn-clear { background: #f5f5f5; color: #777; font-size: 1rem; }
-
-        @keyframes tap { 0% { transform: scale(0.96); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
-       .tap { animation: tap 160ms ease-out; }
-
-       .print-header { display: none; }
-
-        /* ---------- RESPONSIVO SEM ESCONDER COLUNAS ---------- */
-        @media (max-width: 1200px) {
-           .item-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-        }
-        @media (max-width: 1024px) {
-            /* Sidebar vira barra horizontal no topo, sempre visível */
-            body { flex-direction: column; overflow: auto; }
-           .sidebar {
-                position: sticky; top: 0; width: 100%; height: auto;
-                padding: 10px 10px 8px; box-shadow: 0 2px 10px rgba(0,0,0,.25);
-                border-bottom: 3px solid #3e2723;
-            }
-           .sidebar h2 { margin: 0 0 8px; font-size:.95rem; padding-bottom: 6px; }
-           .nav-list {
-                flex-direction: row; gap: 8px; overflow-x: auto; padding-bottom: 6px;
-                -webkit-overflow-scrolling: touch; scrollbar-width: thin;
-            }
-           .nav-btn { padding: 10px 12px; font-size:.9rem; border-radius: 999px; }
-           .nav-btn:hover { transform: translateY(-1px); }
-           .nav-btn:active { transform: translateY(-1px) scale(0.97); }
-
-           .main-content { margin-left: 0; padding: 14px; height: auto; }
-           .container { flex-direction: column; gap: 16px; }
-           .cart-col { position: static; height: auto; order: 2; }
-           .menu-col { order: 1; padding-bottom: 16px; }
-           .header h1 { font-size: 1.5rem; }
-           .item-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-           .qty-input { width: 70px; height: 48px; }
-           .add-btn-menu { width: 56px; height: 48px; font-size: 1.6rem; }
-        }
-        @media (max-width: 640px) {
-           .item-grid { grid-template-columns: 1fr; }
-           .category-section { padding: 14px; margin-bottom: 14px; }
-           .btn { padding: 18px; font-size: 1.08rem; }
-        }
-        @media (max-width: 380px) {
-           .nav-btn { font-size:.85rem; padding: 9px 10px; }
-           .item-card { font-size:.98rem; }
-        }
-
-        @media print {
-           .sidebar,.header,.menu-col,.add-btn-menu,.qty-btn,.remove-btn,.actions,.qty-input { display: none!important; }
-            body { background: #fff; height: auto; overflow: visible; display: block; }
-           .main-content { margin-left: 0; padding: 0; height: auto; overflow: visible; }
-           .container { display: block; }
-           .cart-col { position: static; box-shadow: none; border: none; height: auto; padding: 0; width: 100%; }
-           .cart-col h3 { margin: 0 0 10px 0; font-size: 1.6rem; border-bottom: 2px solid #000; padding-bottom: 6px; }
-            #cartList { overflow: visible; padding: 0; margin: 0; }
-           .print-header { display: block; text-align: center; margin-bottom: 12px; }
-           .print-header h1 { margin: 0; font-size: 20pt; }
-           .print-header p { margin: 4px 0 0; font-size: 10pt; color: #444; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <h2>CATEGORIAS</h2>
-        <div class="nav-list" id="navButtons"></div>
-    </div>
-
-    <div class="main-content">
-        <div class="header">
-            <h1>📋 Lista de Compras Automática</h1>
-        </div>
-
-        <div class="container">
-            <div class="menu-col" id="menu"></div>
-
-            <div class="cart-col">
-                <div class="print-header">
-                    <h1>Lista de Compras</h1>
-                    <p id="printDate"></p>
-                </div>
-
-                <h3 style="margin:0 0 12px 0">Sua Sacola <span id="counter" style="float:right; color:var(--accent-gold)">0</span></h3>
-                <div id="cartList">
-                    <p style="color:#999; text-align:center; margin-top:60px; font-size: 1.1rem;">Selecione os produtos...</p>
-                </div>
-
-                <div class="actions">
-                    <button class="btn btn-whatsapp" id="btnWhats">📱 Enviar WhatsApp</button>
-                    <button class="btn btn-print" id="btnPrint">🖨️ Imprimir / PDF</button>
-                    <button class="btn btn-clear" id="btnClear">Limpar Tudo</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<script>
-  const inventory = {
-    "PRINCIPAL": ["Rolos de Massa","Carne moída","Carne louca","Carne seca (Jabá)","Costela bovina","Frango desfiado","Coxinha","Risole","Bolinha de queijo","Churros"],
-    "EMBALAGENS": ["Sacos de papel (P/M/G)","Guardanapos","Sacolas plásticas p","Sacolas plásticas g","Potes para molho","viagem 1º","Viagem 2º","Saco Mix","Marmita de 1 litro","Pote de isopor 480 ml","Copo de plástico 300 ml","Copo de plástico 400 ml","Copo de plástico 500 ml","Grampo","Durex","BOBINA PLEX","Luvas","tocas","bobinas de saquinho"],
-    "BEBIDAS": ["Refrigerante 350ml","Guaraná 350ml","Fanta Uva 350ml","Fanta Laranja 350ml","Itubaína 350ml","Pepsi 350ml","Sukita Laranja 350ml","Sukita Uva 350ml","Dell Vale laranja 450ml","Dell Vale Uva 450ml","Convenção Guaraná 2L","Convenção Frutbaína 2L","Coca Cola 2L"],
-    "HORTIFRÚTI": ["Banana","Cebola","Pimentão","Tomate"],
-    "DOCES": ["Beijinho","Bis (Preto e Branco)","Bombom Ouro Branco","Bombom Sonho de Valsa","Brigadeiro","Chocoboll","Chocolate ao leite","Chocolate branco","Coco ralado","Creme de avelã (Buello/Nutella)","Doce de leite","Goiabada","Granulado","Leite em pó (Ninho)","Paçoca"],
-    "MERCADO": ["Alho-poró","Azeitona","Açaí (Base)","Batata palha","Brócolis","Calabresa","Catupiry original","Champignon","Cheddar comum","Cheddar Polenghi","Scalon ou tirolez","Ervilha","Granola","Leite condensado","Lombo suíno","Milho verde","Mussarela","Orégano","Ovo cozido","Palmito (Pupunha)","Pimenta","Presunto","Purê de batata","Requeijão culinário (Comum)","Requeijão Coronata()","Salsicha"]
-  };
-
-  const STORAGE_KEY = 'lista-jefferson-v2';
-  let cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-
-  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)); }
-  function tap(el){ el.classList.remove('tap'); void el.offsetWidth; el.classList.add('tap'); }
-
-  function init() {
-    const menu = document.getElementById('menu');
-    const nav = document.getElementById('navButtons');
-    menu.innerHTML = ''; nav.innerHTML = '';
-
-    Object.keys(inventory).forEach(cat => {
-      const totalItens = inventory[cat].length;
-
-      const btn = document.createElement('button');
-      btn.className = 'nav-btn';
-      btn.textContent = `${cat} (${totalItens})`;
-      btn.addEventListener('click', (e) => {
-        tap(e.currentTarget);
-        document.getElementById('cat-' + cat)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      nav.appendChild(btn);
-
-      const section = document.createElement('div');
-      section.className = 'category-section';
-      section.id = 'cat-' + cat;
-      section.innerHTML = `<h3>${cat} <span style="color:#777;font-weight:600">(${totalItens} itens)</span></h3><div class="item-grid"></div>`;
-      const grid = section.querySelector('.item-grid');
-
-      inventory[cat].slice().sort().forEach((item) => {
-        const card = document.createElement('div');
-        card.className = 'item-card';
-        card.innerHTML = `
-          <div class="item-left">
-            <span class="item-name" title="${item}">${item}</span>
-          </div>
-          <div class="controls">
-            <input class="qty-input" type="number" min="1" value="1" inputmode="numeric" aria-label="Quantidade de ${item}">
-            <button class="add-btn-menu" aria-label="Adicionar ${item}" data-item="${item}" data-cat="${cat}">+</button>
-          </div>`;
-        grid.appendChild(card);
-      });
-      menu.appendChild(section);
-    });
-
-    menu.addEventListener('click', (e) => {
-      const btn = e.target.closest('.add-btn-menu');
-      if (!btn) return;
-      tap(btn);
-      const qtyInput = btn.parentElement.querySelector('.qty-input');
-      let q = parseInt(qtyInput?.value || '1', 10);
-      if (isNaN(q) || q < 1) q = 1;
-      addToCart(btn.dataset.item, btn.dataset.cat, q);
-    });
-
-    menu.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.classList.contains('qty-input')) {
-        const controls = e.target.closest('.controls');
-        const btn = controls?.querySelector('.add-btn-menu');
-        btn?.click();
-      }
-    });
-
-    document.getElementById('cartList').addEventListener('click', (e) => {
-      const t = e.target;
-      if (t.classList.contains('qty-btn')) {
-        tap(t);
-        changeQty(t.dataset.name, parseInt(t.dataset.delta, 10));
-      } else if (t.classList.contains('remove-btn')) {
-        tap(t);
-        removeFromCart(t.dataset.name);
-      }
-    });
-
-    document.getElementById('btnWhats').addEventListener('click', (e)=>{ tap(e.currentTarget); sendWhatsApp(); });
-    document.getElementById('btnPrint').addEventListener('click', (e)=>{ tap(e.currentTarget); preparePrint(); window.print(); });
-    document.getElementById('btnClear').addEventListener('click', (e)=>{ tap(e.currentTarget); clearCart(); });
-
-    renderCart();
-  }
-
-  function addToCart(name, cat, qty = 1) {
-    cart[name] = cart[name]? {...cart[name], qty: cart[name].qty + qty } : { name, cat, qty };
-    save(); renderCart();
-  }
-  function changeQty(name, delta) {
-    if (!cart[name]) return;
-    cart[name].qty += delta;
-    if (cart[name].qty <= 0) delete cart[name];
-    save(); renderCart();
-  }
-  function removeFromCart(name) { delete cart[name]; save(); renderCart(); }
-  function clearCart() { if (confirm("Deseja limpar toda a sacola?")) { cart = {}; save(); renderCart(); } }
-
-  function renderCart() {
-    const listDiv = document.getElementById('cartList');
-    const counter = document.getElementById('counter');
-    const items = Object.values(cart);
-    counter.textContent = items.reduce((total, item) => total + item.qty, 0);
-
-    if (items.length === 0) {
-      listDiv.innerHTML = '<p style="color:#999; text-align:center; margin-top:60px; font-size: 1.1rem;">Selecione os produtos...</p>';
-      return;
-    }
-
-    const grouped = items.reduce((acc, item) => {
-      (acc[item.cat] ||= []).push(item);
-      return acc;
-    }, {});
-
-    let html = '';
-    for (const cat in grouped) {
-      html += `<div style="color:var(--accent-gold); font-weight:bold; margin-top:12px; font-size:0.85rem; text-transform:uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px;">${cat}</div>`;
-      grouped[cat].forEach(item => {
-        html += `
-          <div class="cart-item">
-            <div class="qty-controls">
-              <button class="qty-btn" aria-label="Diminuir ${item.name}" data-name="${item.name}" data-delta="-1">-</button>
-              <span class="qty-badge">${item.qty}</span>
-              <button class="qty-btn" aria-label="Aumentar ${item.name}" data-name="${item.name}" data-delta="1">+</button>
-            </div>
-            <div class="item-name-cart" title="${item.name}">${item.name}</div>
-            <span class="remove-btn" aria-label="Remover ${item.name}" data-name="${item.name}">&times;</span>
-          </div>`;
-      });
-    }
-    listDiv.innerHTML = html;
-  }
-
-  function preparePrint() {
-    const d = new Date();
-    const el = document.getElementById('printDate');
-    if (el) el.textContent = d.toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short' });
-  }
-
-  function sendWhatsApp() {
-    const items = Object.values(cart);
-    if (items.length === 0) return alert("Sua sacola está vazia!");
-    let message = "*📋 LISTA DE COMPRAS - JEFFERSON*\n\n";
-    const grouped = items.reduce((acc, item) => { (acc[item.cat] ||= []).push(item); return acc; }, {});
-    for (const cat in grouped) {
-      message += `*--- ${cat} ---*\n`;
-      grouped[cat].forEach(item => message += `• [${item.qty}] ${item.name}\n`);
-      message += `\n`;
-    }
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-  }
-
-  init();
-</script>
-
-</body>
->>>>>>> ecef3486890781b43fff369fc6b1d24e6b94c1ee
 </html>
