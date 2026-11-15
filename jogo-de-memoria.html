@@ -58,7 +58,6 @@
   .hud-item span { font-size: 0.55rem; color: #888; }
   .hud-item strong { font-size: 0.9rem; color: var(--laranja); }
 
-  /* CONTAINER PRINCIPAL */
   #game-container {
     position: relative; background: #fff;
     border: 3px solid var(--marrom); border-radius: 12px;
@@ -71,7 +70,6 @@
     padding: 6px;
   }
 
-  /* O SEGREDO PARA AS CARTAS SE ADAPTAREM */
   .memory-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -110,13 +108,13 @@
   .card-front {
     background: #fff;
     transform: rotateY(180deg);
-    /* Estilo para quando a imagem falhar */
     font-size: 0.5rem;
     text-align: center;
     padding: 2px;
     word-break: break-all;
     line-height: 1.1;
-    color: #666;
+    color: #c92a2a;
+    font-weight: bold;
   }
   
   .card-front img {
@@ -220,16 +218,16 @@ let playerName = localStorage.getItem('pasterryBubbleName') || 'ANÔNIMO';
 document.getElementById('playerTagName').textContent = playerName;
 
 // ==========================================
-// LISTA COMPLETA DE IMAGENS
+// LISTA COMPLETA DE IMAGENS (ATUALIZADA COM OS NOMES EXATOS DA SUA LISTA)
 // ==========================================
 const ALL_IMAGES = [
   'barra-chocolate.png', 'bauru1.png', 'bauru2.png', 'bauru3.png', 'bauru4.png', 'bauru5.png',
   'beef1.png', 'beef2.png', 'beef3.png', 'beef4.png', 'beef5.png', 'beef6.png', 'beef7.png', 'beef8.png',
-  'beijinho-coco.png', 'bis1-chocolate-leite-bis-branco.png', 'bis2-chocolate-branco-bis-preto.png', 'bis3-beijinho-bis-preto.png',
+  'beijinho-coco.png', 'bis1-choco-leite-bis-branco.png', 'bis2-chocolate-branco-bis-preto.png', 'bis3-beijinho-bis-preto.png',
   'brocolis1.png', 'brocolis2.png', 'brocolis3.png', 'brocolis4.png', 'brocolis5.png', 'brocolis6.png', 'brocolis7.png', 'brocolis8.png',
   'c1.png', 'caipira1.png', 'caipira2.png', 'caipira3.png',
   'chicken1.png', 'chicken2.png', 'chicken3.png', 'chicken4.png', 'chicken6.png', 'chicken7.png',
-  'choco1-socomolate-ao-leite.png', 'choco2-chocolate-ao-leite-banana.png', 'choco3-sonho-de-valsa.png', 'choco5-socomolate-branco.png', 'choco6-branco-sonho-de-valsa.png', 'choco7-branco-sonho-de-valsa.png',
+  'choco1-so-chocolate-ao-leite.png', 'choco2-chocolate-ao-leite-banana.png', 'choco3-sonho-de-valsa.png', 'choco5-so-chocolate-branco.png', 'choco6-branco-sonho-de-valsa.png', 'choco7-branco-ouro-branco.png',
   'creme-avela-banana-buello.png', 'creme-avela-coco-buello.png',
   'cruzeiro1.png', 'cruzeiro2.png', 'cruzeiro3.png', 'cruzeiro4.png',
   'doce-de-leite-mussarela-banana.png', 'dois-amores.png', 'embarque1.png', 'embarque2.png', 'embarque3.png',
@@ -240,14 +238,14 @@ const ALL_IMAGES = [
   'lasanha.png', 'logo.jpg',
   'lombo1.png', 'lombo2.png', 'lombo3.png', 'lombo4.png', 'lombo5.png',
   'louca1.png', 'louca2.png', 'louca3.png', 'louca4.png', 'louca5.png', 'louca6.png', 'louca7.png', 'louca8.png',
-  'madre1-doce-de-leite-banana.png', 'madre2-doce-de-leite-pacoca.png', 'madre3-doce-de-leite-coco.png', 'madre4-doce-de-leite-banana-acoca.png',
+  'madre1-doce-de-leite-banana.png', 'madre2-doce-de-leite-pacoca.png', 'madre3-doce-de-leite-coco.png', 'madre4-doce-de-leite-banana-pacoca.png',
   'metro1.png', 'metro2.png', 'mexicana.png',
   'mineiro1.png', 'mineiro2.png', 'mineiro3.png', 'mineiro4.png', 'mineiro5.png', 'mineiro6.png',
   'misto1.png', 'misto2.png', 'misto3.png', 'misto4.png', 'misto5.png',
   'ninho1-so-leite-ninho.png', 'ninho2-ninho-banana.png', 'nutella-banana.png', 'nutella-coco.png',
   'pizza1.png', 'pizza2.png', 'pizza3.png', 'pizza4.png', 'pizza5.png',
   'portug1.png', 'portug2.png', 'portug3.png', 'prestigio.png',
-  'pupunha1.png', 'pupunha2.png', 'pupunha4.png', 'pupunha5.png', 'pupunha6.png', 'pupunha-esp.png',
+  'pupunha-esp.png', 'pupunha1.png', 'pupunha2.png', 'pupunha4.png', 'pupunha5.png', 'pupunha6.png',
   'pure1.png', 'pure2.png', 'pure3.png', 'pure4.png', 'pure5.png',
   'romeu-e-julieta.png', 'salgado-bolinha.png', 'salgado-coxinha.png', 'salgado-risole.png',
   'so-creme-avela-nutella.png', 'so-doce-de-leite.png', 'toscana2.png'
@@ -263,7 +261,6 @@ let timeSeconds = 0;
 let timerInterval = null;
 let isLocked = false;
 let isGameOver = false;
-let isReadyToPlay = false;
 
 // ==========================================
 // LÓGICA DO JOGO
@@ -275,7 +272,7 @@ function initGame() {
   matchedPairs = 0;
   moves = 0;
   timeSeconds = 0;
-  isLocked = false;
+  isLocked = true; // Bloqueia cliques enquanto mostra as cartas
   isGameOver = false;
   
   hudMoves.textContent = moves;
@@ -301,11 +298,11 @@ function initGame() {
     card.classList.add('card');
     card.dataset.pairId = item.id;
     
-    // AQUI ESTÁ A MÁGICA: Se a imagem falhar, o onerror substitui pelo nome do arquivo
+    // Se a imagem falhar, o onerror substitui pelo nome do arquivo
     card.innerHTML = `
       <div class="card-front">
         <img src="${item.src}" alt="Recheio" 
-             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'font-size:0.6rem; padding:2px; text-align:center; color:#c92a2a; font-weight:bold;\\'>${item.name}</div>';">
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'font-size:0.5rem; padding:2px; text-align:center; color:#c92a2a; font-weight:bold; word-break:break-all;\\'>${item.name}</div>';">
       </div>
       <div class="card-back"></div>
     `;
@@ -314,14 +311,25 @@ function initGame() {
     memoryGrid.appendChild(card);
     cards.push(card);
   });
-  
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (!isGameOver) {
-      timeSeconds++;
-      updateTimeDisplay();
-    }
-  }, 1000);
+
+  // MOSTRAR TODAS AS CARTAS POR 3 SEGUNDOS
+  setTimeout(() => {
+    cards.forEach(c => c.classList.add('flipped'));
+  }, 100);
+
+  // Depois de 3 segundos, esconde todas e começa o jogo
+  setTimeout(() => {
+    cards.forEach(c => c.classList.remove('flipped'));
+    isLocked = false;
+    
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!isGameOver) {
+        timeSeconds++;
+        updateTimeDisplay();
+      }
+    }, 1000);
+  }, 3100); // 3 segundos + margem
 }
 
 function flipCard(card) {
@@ -426,8 +434,6 @@ startBtn.onclick = () => {
   initGame();
 };
 
-// Remove a necessidade de esperar o carregamento de TODAS as imagens.
-// O jogo inicia imediatamente. O erro na imagem é tratado carta a carta.
 startBtn.disabled = false;
 startBtn.style.opacity = '1';
 startBtn.textContent = "Jogar";
