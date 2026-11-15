@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry Bubble - Professional</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
+  }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .menu-container { width: 100%; max-height: 70vh; overflow-y: auto; padding-bottom: 20px; }
+  .level-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin-top: 10px; }
+  .level-btn {
+    aspect-ratio: 1; background: #fff; border: 3px solid var(--marrom);
+    border-radius: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-weight: 900;
+    font-size: 1.1rem; color: var(--marrom); cursor: pointer;
+    box-shadow: 0 3px 0 var(--marrom); transition: transform 0.1s; position: relative;
+  }
+  .level-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .level-btn.locked { background: #ddd; color: #888; cursor: not-allowed; box-shadow: 0 3px 0 #bbb; }
+  .level-btn.completed { background: var(--verde); color: #fff; }
+  .level-btn span { font-size: 0.5rem; font-weight: normal; margin-top: 2px; text-align:center;}
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px; height: 65vh;
+    touch-action: none; display: flex; justify-content: center;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">🥟</div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry Bubble!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Mire, atire e estoure os recheios!</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<div class="screen" id="menuScreen">
+  <h2 style="color: var(--marrom); font-size: 1.2rem; margin-bottom: 5px;">Escolha a Fase</h2>
+  <div class="menu-container">
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>NÍVEL</span>
+      <strong id="hudLevel">1 / 10</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMA</span>
+      <strong id="hudTheme" style="font-size:0.75rem;">Clássicos</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMPO</span>
+      <strong id="hudTime" style="color:var(--vermelho);">02:00</strong>
+    </div>
+  </div>
+
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="overlay hidden" id="overlay">
+      <div class="trophy" id="overlayIcon">🏆</div>
+      <h2 id="overlayTitle">Parabéns!</h2>
+      <p id="overlayText">Você explodiu todas as bolhas!</p>
+      
+      <button class="btn" id="nextLevelBtn">Próximo Nível</button>
+      <button class="btn" id="backToMenuBtn" style="background:#ccc; color:#333;">Voltar ao Menu</button>
+    </div>
+  </div>
+  
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn" id="exitBtn" style="background:var(--vermelho);">Sair</button>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// ENGINE CONFIG & STATE
+// ==========================================
+const COLORS = {
+  '🥩': '#e03131', '🧀': '#fcc419', '🍕': '#e8590c', 
+  '🥓': '#c92a2a', '🌿': '#40c057', '🍫': '#5c3a21',
+  '🏆': '#fcd116' 
+};
+
+const LEVELS = [
+  { id: 1, theme: "Clássicos", colors: ['🥩', '🧀', '🍕'], time: 120 },
+  { id: 2, theme: "Da Horta", colors: ['🥩', '🧀', '🌿'], time: 110 },
+  { id: 3, theme: "Nobres", colors: ['🥩', '🥓', '🍕'], time: 100 },
+  { id: 4, theme: "Doces", colors: ['🍫', '🧀', '🍕'], time: 95 },
+  { id: 5, theme: "Mistura", colors: ['🥩', '🧀', '🍕', '🌿'], time: 90 },
+  { id: 6, theme: "Festa", colors: ['🥩', '🧀', '🍕', '🥓', '🌿'], time: 85 },
+  { id: 7, theme: "Tudo Junto", colors: ['🥩', '🧀', '🍕', '🥓', '🌿', '🍫'], time: 80 },
+  { id: 8, theme: "Gourmet", colors: ['🥩', '🧀', '🍕', '🥓', '🌿'], time: 75 },
+  { id: 9, theme: "Caos", colors: ['🥩', '🧀', '🍕', '🥓', '🌿', '🍫'], time: 70 },
+  { id: 10, theme: "A Lenda", colors: ['🥩', '🧀', '🍕', '🥓', '🌿', '🍫'], time: 60 }
+];
+
+let playerName = localStorage.getItem('pasterryBubbleName') || '';
+let unlockedLevel = parseInt(localStorage.getItem('pasterryBubbleUnlocked') || '0', 10);
+let completedLevels = JSON.parse(localStorage.getItem('pasterryBubbleCompleted') || '[]');
+
+let currentLevelIndex = 0;
+let currentSeconds = 0;
+let timeLeft = 0;
+let timerInterval = null;
+let dropTimer = null;
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Engine Variables
+let gameWidth = 0, gameHeight = 0;
+let radius = 18;
+const COLS = 9;
+const ROW_HEIGHT_MULT = 1.75;
+let bubbles = []; 
+let allowedColors = [];
+let currentEmoji = '';
+let nextEmoji = '';
+let cannonAngle = -Math.PI / 2;
+let isGameOver = false;
+let animationId = null;
+let lastTime = 0;
+let warningLineY = 0;
+
+// Entidades
+let shootingBubble = null;
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+function initGame(levelIndex) {
+  currentLevelIndex = levelIndex;
+  const config = LEVELS[levelIndex];
+  allowedColors = config.colors;
+  timeLeft = config.time;
+  
+  document.getElementById('hudLevel').textContent = `${config.id} / 10`;
+  document.getElementById('hudTheme').textContent = config.theme;
+  
+  document.getElementById('menuScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  document.getElementById('overlay').classList.add('hidden');
+  
+  isGameOver = false;
+  bubbles = [];
+  shootingBubble = null;
+  
+  setTimeout(() => {
+    setupCanvas();
+    createInitialGrid();
+    
+    currentEmoji = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+    nextEmoji = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+    
+    startTimer();
+    startDropTimer();
+    
+    lastTime = performance.now();
+    if (animationId) cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(gameLoop);
+  }, 50);
+}
+
+function setupCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  gameWidth = rect.width;
+  gameHeight = rect.height;
+  canvas.width = gameWidth * dpr;
+  canvas.height = gameHeight * dpr;
+  canvas.style.width = gameWidth + 'px';
+  canvas.style.height = gameHeight + 'px';
+  ctx.scale(dpr, dpr);
+  
+  radius = Math.floor(gameWidth / (COLS * 2 + 1));
+  warningLineY = gameHeight - 80; 
+}
+
+function createInitialGrid() {
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (row % 2 !== 0 && col === COLS - 1) continue;
+      let color = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+      if (currentLevelIndex >= 2 && Math.random() < 0.05) color = '🏆';
+      
+      bubbles.push({
+        x: radius + col * (radius * 2) + (row % 2 !== 0 ? radius : 0),
+        y: radius + row * (radius * ROW_HEIGHT_MULT),
+        r: radius,
+        color: color
+      });
+    }
+  }
+}
+
+// ==========================================
+// GAME LOOP (FIXED TIME STEP + DELTA TIME)
+// ==========================================
+function gameLoop(now) {
+  if (isGameOver) return;
+  
+  // Delta Time em segundos, limitado a 0.1 para evitar saltos ao trocar de aba
+  const dt = Math.min((now - lastTime) / 1000, 0.1); 
+  lastTime = now;
+  
+  update(dt);
+  draw();
+  
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function update(dt) {
+  // Atualiza a bolha que está voando
+  if (shootingBubble) {
+    const speed = 1800; // Pixels por segundo (Muito rápido e suave)
+    let moveDist = speed * dt;
+    
+    // Raycast contínuo para não atravessar paredes ou bolhas
+    const steps = Math.ceil(moveDist / (radius * 0.5));
+    const stepX = (shootingBubble.vx * moveDist) / steps;
+    const stepY = (shootingBubble.vy * moveDist) / steps;
+
+    for (let s = 0; s < steps; s++) {
+      shootingBubble.x += stepX;
+      shootingBubble.y += stepY;
+      
+      // 1. Colisão com Teto
+      if (shootingBubble.y - radius <= 0) {
+        shootingBubble.y = radius;
+        resolveCollision(shootingBubble);
+        return;
+      }
+      
+      // 2. Colisão com Paredes
+      if (shootingBubble.x - radius < 0) {
+        shootingBubble.x = radius;
+        shootingBubble.vx *= -1;
+        return;
+      }
+      if (shootingBubble.x + radius > gameWidth) {
+        shootingBubble.x = gameWidth - radius;
+        shootingBubble.vx *= -1;
+        return;
+      }
+      
+      // 3. Colisão com Outras Bolhas
+      let hit = false;
+      for (let b of bubbles) {
+        let dx = shootingBubble.x - b.x;
+        let dy = shootingBubble.y - b.y;
+        // Colisão circular com margem de segurança
+        if (dx * dx + dy * dy < (radius * 2 - 1) * (radius * 2 - 1)) {
+          hit = true;
+          break;
+        }
+      }
+      
+      if (hit) {
+        // Recua para não sobrepor
+        shootingBubble.x -= stepX;
+        shootingBubble.y -= stepY;
+        resolveCollision(shootingBubble);
+        return;
+      }
+    }
+  }
+}
+
+// ==========================================
+// SNAP MATEMÁTICO E COLISÃO
+// ==========================================
+function resolveCollision(hitBubble) {
+  if (!hitBubble) return;
+
+  // Encontra a linha e coluna mais próxima na grade hexagonal
+  const rowHeight = radius * ROW_HEIGHT_MULT;
+  
+  let estRow = Math.round((hitBubble.y - radius) / rowHeight);
+  if (estRow < 0) estRow = 0;
+  
+  let offset = (estRow % 2 !== 0) ? radius : 0;
+  let estCol = Math.round((hitBubble.x - radius - offset) / (radius * 2));
+  
+  // Limita para não sair da tela
+  if (estCol < 0) estCol = 0;
+  if (estCol >= COLS) estCol = COLS - 1;
+  if (estRow % 2 !== 0 && estCol === COLS - 1) estCol = COLS - 2;
+  
+  let finalX = radius + estCol * (radius * 2) + offset;
+  let finalY = radius + estRow * rowHeight;
+  
+  bubbles.push({
+    x: finalX,
+    y: finalY,
+    r: radius,
+    color: hitBubble.color
+  });
+  
+  shootingBubble = null; // Libera o canhão
+  playBeep(500, 'sine', 0.05);
+  
+  checkMatches(bubbles.length - 1);
+}
+
+// ==========================================
+// MOTOR DE EXPLOSÃO (BFS)
+// ==========================================
+function checkMatches(startIndex) {
+  const startBubble = bubbles[startIndex];
+  if (!startBubble) return;
+  
+  if (startBubble.color === '🏆') {
+    playBeep(1000, 'sine', 0.5);
+    bubbles = bubbles.filter(b => b.color === '🏆');
+    checkWin();
+    return;
+  }
+  
+  const connected = [startIndex];
+  const visited = new Set([startIndex]);
+  const queue = [startIndex];
+  
+  while (queue.length > 0) {
+    const currentIdx = queue.shift();
+    const current = bubbles[currentIdx];
+    
+    for (let i = 0; i < bubbles.length; i++) {
+      if (visited.has(i)) continue;
+      const neighbor = bubbles[i];
+      
+      let dx = current.x - neighbor.x;
+      let dy = current.y - neighbor.y;
+      
+      if (dx * dx + dy * dy < (radius * 2.2) * (radius * 2.2) && neighbor.color === startBubble.color) {
+        visited.add(i);
+        connected.push(i);
+        queue.push(i);
+      }
+    }
+  }
+  
+  if (connected.length >= 3) {
+    playBeep(800, 'sine', 0.1);
+    setTimeout(() => playBeep(1000, 'sine', 0.1), 50);
+    
+    connected.sort((a, b) => b - a).forEach(idx => {
+      bubbles.splice(idx, 1);
+    });
+    
+    setTimeout(() => {
+      dropFloatingBubbles();
+      checkWin();
+    }, 100);
+  }
+}
+
+function dropFloatingBubbles() {
+  if (bubbles.length === 0) return;
+  
+  const connectedToTop = new Set();
+  const queue = [];
+  
+  for (let i = 0; i < bubbles.length; i++) {
+    if (bubbles[i].y - radius <= 5) {
+      connectedToTop.add(i);
+      queue.push(i);
+    }
+  }
+  
+  while (queue.length > 0) {
+    const currentIdx = queue.shift();
+    const current = bubbles[currentIdx];
+    
+    for (let i = 0; i < bubbles.length; i++) {
+      if (connectedToTop.has(i)) continue;
+      const neighbor = bubbles[i];
+      
+      let dx = current.x - neighbor.x;
+      let dy = current.y - neighbor.y;
+      
+      if (dx * dx + dy * dy < (radius * 2.2) * (radius * 2.2)) {
+        connectedToTop.add(i);
+        queue.push(i);
+      }
+    }
+  }
+  
+  let dropped = false;
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    if (!connectedToTop.has(i)) {
+      bubbles.splice(i, 1);
+      dropped = true;
+    }
+  }
+  if (dropped) playBeep(200, 'square', 0.2);
+}
+
+// ==========================================
+// DESCIDA CONSTANTE
+// ==========================================
+function startDropTimer() {
+  if (dropTimer) clearInterval(dropTimer);
+  
+  dropTimer = setInterval(() => {
+    if (isGameOver) return;
+    
+    // Empurra todas as bolhas para baixo
+    for (let b of bubbles) {
+      b.y += radius * ROW_HEIGHT_MULT;
+    }
+    
+    // Cria nova linha no topo
+    let topY = bubbles.length > 0 ? Math.min(...bubbles.map(b => b.y)) : radius;
+    let rowIndex = Math.round((topY - radius) / (radius * ROW_HEIGHT_MULT));
+    let offset = (rowIndex % 2 !== 0) ? radius : 0;
+    
+    for (let col = 0; col < COLS; col++) {
+      if (offset > 0 && col === COLS - 1) continue;
+      
+      let color = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+      if (Math.random() < 0.05) color = '🏆';
+      
+      bubbles.push({
+        x: radius + col * (radius * 2) + offset,
+        y: radius,
+        r: radius,
+        color: color
+      });
+    }
+    
+    playBeep(200, 'sawtooth', 0.1);
+  }, 3500); // Desce a cada 3.5 segundos
+}
+
+// ==========================================
+// CONTROLES
+// ==========================================
+function handlePointerMove(e) {
+  if (isGameOver || shootingBubble) return;
+  const rect = canvas.getBoundingClientRect();
+  let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  
+  let angle = Math.atan2((clientY - rect.top) - (gameHeight - 30), (clientX - rect.left) - (gameWidth / 2));
+  if (angle > 0) angle = 0; 
+  cannonAngle = angle;
+}
+
+function handlePointerDown(e) {
+  if (isGameOver || shootingBubble) return;
+  e.preventDefault();
+  
+  shootingBubble = {
+    x: gameWidth / 2, y: gameHeight - 30, r: radius, color: currentEmoji,
+    vx: Math.cos(cannonAngle), vy: Math.sin(cannonAngle)
+  };
+  
+  currentEmoji = nextEmoji;
+  nextEmoji = allowedColors[Math.floor(Math.random() * allowedColors.length)];
+  playBeep(300, 'square', 0.1);
+}
+
+// ==========================================
+// RENDERIZAÇÃO
+// ==========================================
+function draw() {
+  ctx.clearRect(0, 0, gameWidth, gameHeight);
+  
+  // Linha de perigo
+  ctx.beginPath();
+  ctx.moveTo(0, warningLineY);
+  ctx.lineTo(gameWidth, warningLineY);
+  ctx.strokeStyle = 'rgba(224, 49, 49, 0.5)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bolhas na tela
+  for (let b of bubbles) {
+    drawBubble(b.x, b.y, b.r, b.color);
+    if (b.y + b.r >= warningLineY && !isGameOver) {
+      gameOver("As bolhas chegaram no canhão!");
+    }
+  }
+  
+  // Bolha voando ou próxima no canhão
+  if (shootingBubble) {
+    drawBubble(shootingBubble.x, shootingBubble.y, shootingBubble.r, shootingBubble.color);
+  } else {
+    drawBubble(gameWidth/2, gameHeight - 30 - radius * 2, radius, currentEmoji);
+  }
+  
+  drawCannon();
+}
+
+function drawBubble(x, y, r, emoji) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = COLORS[emoji] || '#ccc';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Brilho
+  ctx.beginPath();
+  ctx.arc(x - r*0.3, y - r*0.3, r*0.4, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fill();
+  
+  ctx.font = `${r * 1.1}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, x, y + 2);
+}
+
+function drawCannon() {
+  const cx = gameWidth / 2;
+  const cy = gameHeight - 30;
+  
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(cannonAngle + Math.PI / 2);
+  
+  ctx.fillStyle = '#4a0e14';
+  ctx.beginPath();
+  ctx.arc(0, 0, 25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.fillStyle = '#e8590c';
+  ctx.fillRect(-12, -45, 24, 45);
+  ctx.strokeStyle = '#4a0e14';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-12, -45, 24, 45);
+  
+  ctx.fillStyle = '#fcd116';
+  ctx.fillRect(-12, -15, 24, 8);
+  
+  ctx.restore();
+  
+  // Linha de mira
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(cannonAngle) * 200, cy + Math.sin(cannonAngle) * 200);
+  ctx.strokeStyle = 'rgba(232, 89, 12, 0.4)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([5, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ==========================================
+// GERENCIAMENTO DE ESTADO (TIMER, WIN, LOSE)
+// ==========================================
+function startTimer() {
+  currentSeconds = 0;
+  updateTimeDisplay();
+  
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    currentSeconds++;
+    timeLeft = LEVELS[currentLevelIndex].time - currentSeconds;
+    
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateTimeDisplay();
+      gameOver("O tempo acabou!");
+    } else {
+      updateTimeDisplay();
+    }
+  }, 1000);
+}
+
+function updateTimeDisplay() {
+  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const s = (timeLeft % 60).toString().padStart(2, '0');
+  document.getElementById('hudTime').textContent = `${m}:${s}`;
+  document.getElementById('hudTime').style.color = timeLeft <= 10 ? 'red' : 'var(--vermelho)';
+}
+
+function checkWin() {
+  if (bubbles.length === 0) winLevel();
+}
+
+function winLevel() {
+  isGameOver = true;
+  clearInterval(timerInterval);
+  clearInterval(dropTimer);
+  
+  playBeep(600, 'sine', 0.1); setTimeout(() => playBeep(800, 'sine', 0.1), 100); setTimeout(() => playBeep(1000, 'sine', 0.2), 200);
+  
+  const isLastLevel = currentLevelIndex === LEVELS.length - 1;
+  
+  if (!completedLevels.includes(currentLevelIndex)) {
+    completedLevels.push(currentLevelIndex);
+    localStorage.setItem('pasterryBubbleCompleted', JSON.stringify(completedLevels));
+  }
+  if (currentLevelIndex >= unlockedLevel && currentLevelIndex < LEVELS.length - 1) {
+    unlockedLevel = currentLevelIndex + 1;
+    localStorage.setItem('pasterryBubbleUnlocked', unlockedLevel);
+  }
+
+  document.getElementById('overlayIcon').textContent = isLastLevel ? '👑' : '🎉';
+  document.getElementById('overlayTitle').textContent = isLastLevel ? "VOCÊ É UMA LENDA!" : "Parabéns!";
+  document.getElementById('overlayTitle').style.color = 'var(--laranja)';
+  
+  let timeStr = `${Math.floor(currentSeconds / 60).toString().padStart(2, '0')}:${(currentSeconds % 60).toString().padStart(2, '0')}`;
+  document.getElementById('overlayText').innerHTML = `Mandou bem, <b>${playerName}</b>! Você explodiu as bolhas em ${timeStr}.`;
+  document.getElementById('nextLevelBtn').style.display = isLastLevel ? 'none' : 'block';
+  document.getElementById('nextLevelBtn').textContent = "Próximo Nível";
+  
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+function gameOver(reason) {
+  isGameOver = true;
+  clearInterval(timerInterval);
+  clearInterval(dropTimer);
+  playBeep(100, 'sawtooth', 0.5);
+  
+  document.getElementById('overlayIcon').textContent = '💥';
+  document.getElementById('overlayTitle').textContent = "Game Over";
+  document.getElementById('overlayTitle').style.color = 'var(--vermelho)';
+  document.getElementById('overlayText').innerHTML = `${reason}<br><b>${playerName}</b>, tente novamente!`;
+  document.getElementById('nextLevelBtn').textContent = "Tentar Novamente";
+  
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+// ==========================================
+// NAVEGAÇÃO DO MENU
+// ==========================================
+function initApp() {
+  if (playerName) { 
+    document.getElementById('inputName').value = playerName; 
+    showMenu(); 
+  } else { 
+    document.getElementById('welcomeScreen').classList.add('active'); 
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = document.getElementById('inputName').value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryBubbleName', playerName);
+  playBeep(600, 'sine', 0.1);
+  showMenu();
+});
+
+function showMenu() {
+  document.getElementById('welcomeScreen').classList.remove('active');
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('menuScreen').classList.add('active');
+  isGameOver = true;
+  
+  document.getElementById('playerTag').style.display = 'flex';
+  document.getElementById('playerTagName').textContent = playerName;
+  
+  if (animationId) cancelAnimationFrame(animationId);
+  clearInterval(timerInterval);
+  clearInterval(dropTimer);
+  
+  renderMenu();
+}
+
+function renderMenu() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+  
+  LEVELS.forEach((lvl, index) => {
+    const btn = document.createElement('div');
+    btn.className = 'level-btn';
+    
+    const isLocked = index > unlockedLevel;
+    const isCompleted = completedLevels.includes(index);
+    
+    if (isLocked) btn.classList.add('locked');
+    else if (isCompleted) btn.classList.add('completed');
+    
+    btn.innerHTML = `${index + 1}<span>${lvl.theme}</span>`;
+    if (!isLocked) btn.onclick = () => initGame(index);
+    grid.appendChild(btn);
+  });
+}
+
+canvas.addEventListener('mousemove', handlePointerMove);
+canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+canvas.addEventListener('mousedown', handlePointerDown);
+canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+document.getElementById('nextLevelBtn').addEventListener('click', () => {
+  const btnText = document.getElementById('nextLevelBtn').textContent;
+  if (btnText === "Tentar Novamente") {
+    initGame(currentLevelIndex);
+  } else {
+    if (currentLevelIndex < LEVELS.length - 1) initGame(currentLevelIndex + 1);
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', showMenu);
+document.getElementById('exitBtn').addEventListener('click', showMenu);
+
+let audioCtx;
+function playBeep(freq, type, duration) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+initApp();
+</script>
+</body>
+</html>

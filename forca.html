@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Forca Pasterry - O Segredo dos Recheios</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* Topo com Logo */
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 420px; margin-bottom: 10px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 40px; height: 40px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 2rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* Telas */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 420px;
+  }
+  .screen.active { display: flex; }
+
+  /* Tela Inicial */
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* Menu (Scrollable para 30 níveis) */
+  .menu-container {
+    width: 100%; max-height: 75vh; overflow-y: auto; padding-bottom: 20px;
+  }
+  .level-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    width: 100%; margin-top: 10px;
+  }
+  .level-btn {
+    aspect-ratio: 1; background: #fff; border: 3px solid var(--marrom);
+    border-radius: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-weight: 900;
+    font-size: 1.1rem; color: var(--marrom); cursor: pointer;
+    box-shadow: 0 3px 0 var(--marrom); transition: transform 0.1s;
+    position: relative;
+  }
+  .level-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .level-btn.locked { background: #ddd; color: #888; cursor: not-allowed; box-shadow: 0 3px 0 #bbb; }
+  .level-btn.completed { background: var(--verde); color: #fff; }
+  .level-btn span { font-size: 0.5rem; font-weight: normal; margin-top: 2px; text-align:center; padding: 0 2px;}
+  .level-btn .crown {
+    position: absolute; top: -8px; right: -5px; font-size: 1.1rem;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+  }
+
+  /* HUD Jogo */
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; margin-bottom: 10px;
+    background: #fff; padding: 8px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom);
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  /* Área da Forca */
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    width: 100%; display: flex; flex-direction: column; align-items: center;
+  }
+
+  #pastel-drawing {
+    font-size: 4rem; height: 90px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s;
+  }
+  
+  .shake { animation: shake 0.4s; }
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-10px); }
+    100% { transform: translateX(0); }
+  }
+
+  /* Letras da Palavra */
+  .word-display {
+    display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;
+    margin: 15px 0; width: 100%;
+  }
+  .letter-slot {
+    min-width: 24px; height: 38px; border-bottom: 4px solid var(--marrom);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 900; color: var(--marrom);
+    text-transform: uppercase; transition: all 0.3s;
+  }
+  .letter-slot.revealed { border-bottom-color: var(--verde); color: var(--verde); transform: translateY(-3px); }
+
+  /* Teclado */
+  .keyboard {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 100%;
+    margin-top: 10px;
+  }
+  .key {
+    background: var(--amarelo); color: var(--marrom);
+    border: 2px solid var(--marrom); border-radius: 6px;
+    font-size: 1rem; font-weight: 800; padding: 8px 0;
+    cursor: pointer; box-shadow: 0 3px 0 var(--marrom);
+    transition: transform 0.1s;
+  }
+  .key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .key.correct { background: var(--verde); color: #fff; border-color: #5c9e1f; pointer-events: none;}
+  .key.wrong { background: var(--vermelho); color: #fff; border-color: #a00; opacity: 0.5; pointer-events: none;}
+  .key:disabled { cursor: not-allowed; }
+
+  /* Overlay */
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    border-radius: 15px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy {
+    font-size: 3rem; animation: float 2s infinite alternate;
+    margin-bottom: 10px; display: inline-block;
+  }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  /* Botões */
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s;
+    margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+  .btn-hint { background: var(--azul); color: #fff; }
+
+  /* Ranking */
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%;
+    margin-top: 5px; font-size: 0.85rem;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 3px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo à Forca Pasterry!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Digite seu nome para desvendar os 30 segredos.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: MENU -->
+<div class="screen" id="menuScreen">
+  <h2 style="color: var(--marrom); font-size: 1.2rem; margin-bottom: 5px;">Escolha o Nível</h2>
+  <div class="menu-container">
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+</div>
+
+<!-- TELA 3: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>NÍVEL</span>
+      <strong id="hudLevel">1 / 30</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMA</span>
+      <strong id="hudTheme" style="font-size:0.75rem; max-width:100px; text-align:center;">Clássicos</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMPO</span>
+      <strong id="hudTimer">00:00</strong>
+    </div>
+  </div>
+
+  <div id="game-container">
+    <div id="pastel-drawing">🥟</div>
+    <div class="word-display" id="wordDisplay"></div>
+    <div class="keyboard" id="keyboard"></div>
+    
+    <div class="overlay hidden" id="overlay">
+      <div class="trophy" id="overlayIcon">🏆</div>
+      <h2 id="overlayTitle">Parabéns!</h2>
+      <p id="overlayText">Você acertou a palavra!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Melhores Tempos</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="nextLevelBtn">Próximo Nível</button>
+      <button class="btn" id="backToMenuBtn" style="background:#ccc; color:#333;">Voltar ao Menu</button>
+    </div>
+  </div>
+  
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn btn-hint" id="hintBtn">💡 Dica (<span id="hintCount">1</span>)</button>
+    <button class="btn" id="exitBtn" style="background:var(--vermelho);">Sair</button>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO DOS 30 NÍVEIS
+// ==========================================
+const levelsConfig = [
+  // FÁCEIS (1 a 10)
+  { id: 1, theme: "Clássicos", words: ["PASTERRY", "PASTEL", "CARNE", "QUEIJO", "PIZZA"] },
+  { id: 2, theme: "Da Horta", words: ["PALMITO", "MILHO", "ERVILHA", "CATUPIRY", "AZEITONA"] },
+  { id: 3, theme: "Nobres", words: ["CAMARAO", "BACON", "CALABRESA", "FILE", "CHEDDAR"] },
+  { id: 4, theme: "Doces", words: ["CHOCOLATE", "PRESTIGIO", "MORANGO", "ROMEU", "NUTELLA"] },
+  { id: 5, theme: "Bebidas", words: ["REFRIGERANTE", "CALDO", "SUCO", "AGUA", "VINHO"] },
+  { id: 6, theme: "Combos", words: ["PASTEL", "REFRESCO", "PORCAO", "BATATA", "PROMOCAO"] },
+  { id: 7, theme: "Apimentados", words: ["PIMENTA", "MEXICANO", "JALAPENO", "FOGO", "TABASCO"] },
+  { id: 8, theme: "Gourmet", words: ["TRUFA", "PARMA", "RUCULA", "SHITAKE", "GRANDE"] },
+  { id: 9, theme: "Vegetarianos", words: ["BERINJELA", "ABOBRINHA", "TOFU", "ESPINAFRE", "BROCOLIS"] },
+  { id: 10, theme: "A Lenda", words: ["PASTERRY", "MEGA", "TUDO", "ESPECIAL", "SUPREMO"] },
+  
+  // MÉDIOS (11 a 20)
+  { id: 11, theme: "Massas", words: ["LASANHA", "MACARRAO", "NHOQUE", "RAVIOLI", "ESPAGUETE"] },
+  { id: 12, theme: "Salgados", words: ["COXINHA", "RISOLES", "CROQUETE", "BOLINHA", "ENROLADINHO"] },
+  { id: 13, theme: "Bebidas Finas", words: ["CERVEJA", "CAIPIRINHA", "WHISKY", "VODKA", "MARGARITA"] },
+  { id: 14, theme: "Churrasco", words: ["PICANHA", "COSTELA", "LINGUICA", "FRANGO", "CORACAO"] },
+  { id: 15, theme: "Oriental", words: ["SUSHI", "TEMAKI", "YAKISSOBA", "GUIOZA", "HARUMI"] },
+  { id: 16, theme: "Lanches", words: ["HAMBURGER", "XIS", "BAURU", "HOTDOG", "SANDUICHE"] },
+  { id: 17, theme: "Sobremesas", words: ["PUDIM", "MOUSSE", "SORVETE", "BOLO", "TORTA"] },
+  { id: 18, theme: "Frutas", words: ["ABACAXI", "MELANCIA", "MORANGO", "UVA", "BANANA"] },
+  { id: 19, theme: "Temperos", words: ["OREGANO", "MANJERICAO", "SAISINHA", "PIMENTA", "ALHO"] },
+  { id: 20, theme: "A Mesa", words: ["GARFO", "FACA", "COLHER", "PRATO", "COPO"] },
+
+  // DIFÍCEIS (21 a 30) - Palavras maiores
+  { id: 21, theme: "Cozinha Profissional", words: ["PANELA", "FRIGIDEIRA", "LIQUIDIFICADOR", "BATEDEIRA", "FORNO"] },
+  { id: 22, theme: "Ingredientes Secretos", words: ["FERMENTO", "MANTEIGA", "CREME", "LEITE", "FARINHA"] },
+  { id: 23, theme: "Pratos Típicos", words: ["FEIJOADA", "MOQUECA", "BAIAO", "TAPIOCA", "ACARAJE"] },
+  { id: 24, theme: "Fast Food", words: ["BATATA", "NUGGETS", "MILKSHAKE", "PIZZA", "SORVETE"] },
+  { id: 25, theme: "Pastelaria", words: ["MASSA", "RECHEIO", "FRITURA", "EMBALAGEM", "DELIVERY"] },
+  { id: 26, theme: "Doces Finos", words: ["BRIGADEIRO", "BEIJINHO", "Cajuzinho", "QUINDIM", "PAÇOCA"] },
+  { id: 27, theme: "Bebidas Geladas", words: ["REFRIGERANTE", "SUCO", "AGUA", "ENERGETICO", "ISOTONICO"] },
+  { id: 28, theme: "Café da Manhã", words: ["PAO", "QUEIJO", "PRESUNTO", "MANTEIGA", "CAFE"] },
+  { id: 29, theme: "Mundial", words: ["LASANHA", "SUSHI", "HAMBURGER", "TACO", "PAELLA"] },
+  { id: 30, theme: "Lenda Suprema", words: ["PASTERRY", "DELIVERY", "PASTELARIA", "MOTORISTA", "CLIENTE"] }
+];
+
+const maxErrors = 6;
+const pastelStates = ["🥟", "🥟", "🌗", "🌓", "🥠", "🫓", "💥"]; 
+
+// ==========================================
+// ESTADO DO JOGO E PROGRESSO
+// ==========================================
+let playerName = localStorage.getItem('pasterryForcaName') || '';
+let unlockedLevel = parseInt(localStorage.getItem('pasterryForcaUnlocked') || '0', 10);
+let completedLevels = JSON.parse(localStorage.getItem('pasterryForcaCompleted') || '[]');
+let rankings = JSON.parse(localStorage.getItem('pasterryForcaRankings') || '[]');
+
+let currentLevelIndex = 0;
+let currentWordIndex = 0;
+let currentWord = "";
+let guessedLetters = new Set();
+let errors = 0;
+let startTime = null;
+let timerInterval = null;
+let currentSeconds = 0;
+let hintsLeft = 1;
+
+// Elementos DOM
+const welcomeScreen = document.getElementById('welcomeScreen');
+const menuScreen = document.getElementById('menuScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+const levelGrid = document.getElementById('levelGrid');
+const wordDisplay = document.getElementById('wordDisplay');
+const keyboard = document.getElementById('keyboard');
+const pastelDrawing = document.getElementById('pastel-drawing');
+const hudLevel = document.getElementById('hudLevel');
+const hudTheme = document.getElementById('hudTheme');
+const hudTimer = document.getElementById('hudTimer');
+const overlay = document.getElementById('overlay');
+const hintBtn = document.getElementById('hintBtn');
+const hintCountSpan = document.getElementById('hintCount');
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    showMenu();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryForcaName', playerName);
+  playBeep(600, 'sine', 0.1);
+  showMenu();
+});
+
+function showMenu() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  renderMenu();
+}
+
+// ==========================================
+// MENU E RANKING
+// ==========================================
+function renderMenu() {
+  levelGrid.innerHTML = '';
+  levelsConfig.forEach((lvl, index) => {
+    const btn = document.createElement('div');
+    btn.className = 'level-btn';
+    
+    const isLocked = index > unlockedLevel;
+    const isCompleted = completedLevels.includes(index);
+    
+    if (isLocked) btn.classList.add('locked');
+    else if (isCompleted) btn.classList.add('completed');
+    
+    const levelRecord = rankings.find(r => r.level === index && r.name === playerName);
+    let crownHtml = '';
+    if (levelRecord && isCompleted) crownHtml = `<div class="crown">👑</div>`;
+    
+    // Mostra o número do nível e um resumo do tema (para não quebrar o layout)
+    let shortTheme = lvl.theme.split(' ')[0]; // Pega só a primeira palavra do tema
+    
+    btn.innerHTML = `${crownHtml}${index + 1}<span>${shortTheme}</span>`;
+    if (!isLocked) btn.onclick = () => startLevel(index);
+    levelGrid.appendChild(btn);
+  });
+}
+
+// ==========================================
+// LÓGICA DA FORCA
+// ==========================================
+function startLevel(index) {
+  currentLevelIndex = index;
+  const config = levelsConfig[index];
+  
+  hudLevel.textContent = `${config.id} / 30`;
+  hudTheme.textContent = config.theme;
+  hintsLeft = 1;
+  hintCountSpan.textContent = hintsLeft;
+  hintBtn.disabled = false;
+  hintBtn.style.opacity = 1;
+  
+  menuScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  overlay.classList.add('hidden');
+  
+  currentWordIndex = Math.floor(Math.random() * config.words.length);
+  prepareWord();
+  startTimer();
+  playBeep(600, 'sine', 0.1);
+}
+
+function prepareWord() {
+  const config = levelsConfig[currentLevelIndex];
+  currentWord = config.words[currentWordIndex];
+  
+  guessedLetters.clear();
+  errors = 0;
+  
+  // A PARTIR DO NÍVEL 15, O JOGO COMEÇA COM 1 ERRO (Mordida no pastel)
+  if (currentLevelIndex >= 14) { 
+    errors = 1;
+  }
+  
+  pastelDrawing.textContent = pastelStates[errors];
+  pastelDrawing.classList.remove('shake');
+  
+  renderWord();
+  renderKeyboard();
+}
+
+function renderWord() {
+  wordDisplay.innerHTML = '';
+  for (let i = 0; i < currentWord.length; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'letter-slot';
+    const letter = currentWord[i];
+    
+    if (guessedLetters.has(letter) || letter === '-') {
+      slot.textContent = letter;
+      slot.classList.add('revealed');
+    } else {
+      slot.textContent = '';
+    }
+    wordDisplay.appendChild(slot);
+  }
+}
+
+function renderKeyboard() {
+  keyboard.innerHTML = '';
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const key = document.createElement('button');
+    key.className = 'key';
+    key.textContent = letter;
+    key.dataset.letter = letter;
+    
+    if (guessedLetters.has(letter)) {
+      if (currentWord.includes(letter)) key.classList.add('correct');
+      else key.classList.add('wrong');
+    }
+    
+    key.onclick = () => handleGuess(letter);
+    keyboard.appendChild(key);
+  }
+}
+
+function handleGuess(letter) {
+  if (guessedLetters.has(letter)) return;
+  guessedLetters.add(letter);
+  
+  const keyBtn = document.querySelector(`.key[data-letter="${letter}"]`);
+  
+  if (currentWord.includes(letter)) {
+    keyBtn.classList.add('correct');
+    playBeep(800, 'sine', 0.1);
+    renderWord();
+    checkWin();
+  } else {
+    keyBtn.classList.add('wrong');
+    errors++;
+    playBeep(200, 'square', 0.3);
+    
+    pastelDrawing.textContent = pastelStates[errors];
+    pastelDrawing.classList.remove('shake');
+    void pastelDrawing.offsetWidth; 
+    pastelDrawing.classList.add('shake');
+    
+    if (errors >= maxErrors) {
+      gameOver();
+    }
+  }
+}
+
+function checkWin() {
+  const isWin = currentWord.split('').every(char => char === '-' || guessedLetters.has(char));
+  
+  if (isWin) {
+    clearInterval(timerInterval);
+    playBeep(600, 'sine', 0.1); setTimeout(() => playBeep(800, 'sine', 0.1), 100); setTimeout(() => playBeep(1000, 'sine', 0.2), 200);
+    
+    if (currentWord === "PASTERRY") {
+      setTimeout(() => playBeep(1200, 'sine', 0.2), 300);
+    }
+    
+    winLevel();
+  }
+}
+
+// ==========================================
+// FIM DE JOGO (VITÓRIA E DERROTA)
+// ==========================================
+function winLevel() {
+  const isLastLevel = currentLevelIndex === levelsConfig.length - 1;
+  
+  if (!completedLevels.includes(currentLevelIndex)) {
+    completedLevels.push(currentLevelIndex);
+    localStorage.setItem('pasterryForcaCompleted', JSON.stringify(completedLevels));
+  }
+  if (currentLevelIndex >= unlockedLevel && currentLevelIndex < levelsConfig.length - 1) {
+    unlockedLevel = currentLevelIndex + 1;
+    localStorage.setItem('pasterryForcaUnlocked', unlockedLevel);
+  }
+
+  let isNewRecord = false;
+  const existingRecordIndex = rankings.findIndex(r => r.level === currentLevelIndex && r.name === playerName);
+  
+  if (existingRecordIndex > -1) {
+    if (currentSeconds < rankings[existingRecordIndex].time) {
+      rankings[existingRecordIndex].time = currentSeconds;
+      isNewRecord = true;
+    }
+  } else {
+    rankings.push({ level: currentLevelIndex, name: playerName, time: currentSeconds });
+    isNewRecord = true;
+  }
+  localStorage.setItem('pasterryForcaRankings', JSON.stringify(rankings));
+
+  document.getElementById('overlayIcon').textContent = isLastLevel ? '👑' : '🎉';
+  document.getElementById('overlayTitle').textContent = isLastLevel ? "VOCÊ É UMA LENDA!" : "Parabéns!";
+  
+  let recordMsg = isNewRecord ? "<br><span style='color:var(--verde); font-weight:900;'>👑 NOVO RECORDE PESSOAL!</span>" : "";
+  
+  document.getElementById('overlayText').innerHTML = isLastLevel 
+    ? `Incrível, <b>${playerName}</b>! Você desvendou todos os 30 segredos em ${hudTimer.textContent}.` 
+    : `Mandou bem, <b>${playerName}</b>! A palavra era <b>${currentWord}</b>.<br>Você acertou em ${hudTimer.textContent}.${recordMsg}`;
+
+  const levelRanks = rankings.filter(r => r.level === currentLevelIndex)
+                             .sort((a, b) => a.time - b.time)
+                             .slice(0, 3);
+                             
+  let rankHtml = levelRanks.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+    const timeStr = `${Math.floor(r.time / 60).toString().padStart(2, '0')}:${(r.time % 60).toString().padStart(2, '0')}`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${timeStr}</b></div>`;
+  }).join('');
+
+  document.getElementById('rankingList').innerHTML = rankHtml;
+  document.getElementById('rankingBox').style.display = 'block';
+
+  document.getElementById('nextLevelBtn').style.display = isLastLevel ? 'none' : 'block';
+  document.getElementById('nextLevelBtn').textContent = "Próximo Nível";
+  
+  overlay.classList.remove('hidden');
+}
+
+function gameOver() {
+  clearInterval(timerInterval);
+  playBeep(100, 'sawtooth', 0.5);
+  
+  document.getElementById('overlayIcon').textContent = '💥';
+  document.getElementById('overlayTitle').textContent = "O Pastel Acabou!";
+  document.getElementById('overlayTitle').style.color = 'var(--vermelho)';
+  document.getElementById('overlayText').innerHTML = `Você errou muitas letras, <b>${playerName}</b>.<br>A palavra era <b>${currentWord}</b>.`;
+  
+  document.getElementById('rankingBox').style.display = 'none';
+  document.getElementById('nextLevelBtn').textContent = "Tentar Novamente";
+  
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// DICAS
+// ==========================================
+hintBtn.addEventListener('click', () => {
+  if (hintsLeft <= 0) return;
+  
+  const missingLetters = currentWord.split('').filter(char => !guessedLetters.has(char) && char !== '-');
+  
+  if (missingLetters.length > 0) {
+    const hintLetter = missingLetters[0];
+    handleGuess(hintLetter);
+  }
+  
+  hintsLeft--;
+  hintCountSpan.textContent = hintsLeft;
+  playBeep(400, 'sine', 0.1);
+  
+  if (hintsLeft <= 0) {
+    hintBtn.disabled = true;
+    hintBtn.style.opacity = 0.5;
+  }
+});
+
+// ==========================================
+// TEMPO
+// ==========================================
+function startTimer() {
+  startTime = Date.now();
+  currentSeconds = 0;
+  hudTimer.textContent = "00:00";
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    currentSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(currentSeconds / 60).toString().padStart(2, '0');
+    const s = (currentSeconds % 60).toString().padStart(2, '0');
+    hudTimer.textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+// ==========================================
+// NAVEGAÇÃO
+// ==========================================
+document.getElementById('nextLevelBtn').addEventListener('click', () => {
+  const btnText = document.getElementById('nextLevelBtn').textContent;
+  
+  if (btnText === "Tentar Novamente") {
+    const config = levelsConfig[currentLevelIndex];
+    currentWordIndex = Math.floor(Math.random() * config.words.length);
+    overlay.classList.add('hidden');
+    prepareWord();
+    startTimer();
+  } else {
+    if (currentLevelIndex < levelsConfig.length - 1) {
+      startLevel(currentLevelIndex + 1);
+    }
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', () => {
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  renderMenu();
+});
+
+document.getElementById('exitBtn').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  renderMenu();
+});
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+// ==========================================
+// START
+// ==========================================
+initApp();
+</script>
+</body>
+</html>

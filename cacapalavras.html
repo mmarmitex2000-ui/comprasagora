@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Caça-Palavras Pasterry - Saga dos Recheios</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* Topo com Logo */
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 420px; margin-bottom: 10px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 40px; height: 40px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 2rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* Telas (Menu, Jogo, Fim) */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 420px;
+  }
+  .screen.active { display: flex; }
+
+  /* Tela Inicial (Nome) */
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* Menu de Níveis */
+  .level-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    width: 100%; margin-top: 10px;
+  }
+  .level-btn {
+    aspect-ratio: 1; background: #fff; border: 3px solid var(--marrom);
+    border-radius: 12px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-weight: 900;
+    font-size: 1.2rem; color: var(--marrom); cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s;
+    position: relative;
+  }
+  .level-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+  .level-btn.locked { background: #ddd; color: #888; cursor: not-allowed; box-shadow: 0 4px 0 #bbb; }
+  .level-btn.completed { background: var(--verde); color: #fff; }
+  .level-btn span { font-size: 0.6rem; font-weight: normal; margin-top: 2px;}
+  .level-btn .crown {
+    position: absolute; top: -10px; right: -5px; font-size: 1.2rem;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+  }
+
+  /* HUD do Jogo */
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; margin-bottom: 10px;
+    background: #fff; padding: 8px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom);
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  /* Grid do Caça-Palavras */
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 5px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    touch-action: none;
+  }
+  #grid {
+    display: grid; gap: 2px;
+  }
+  .cell {
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--marrom); background: #fffdf8;
+    border-radius: 4px; cursor: pointer; transition: background 0.1s;
+  }
+  .cell.selected { background: var(--amarelo); transform: scale(1.1); }
+  .cell.found { background: var(--verde); color: #fff; }
+  .cell.found.selected { background: #6b9e2f; }
+  .cell.hint { animation: pulseHint 0.5s infinite alternate; }
+  @keyframes pulseHint { from { background: var(--vermelho); color: #fff;} to { background: var(--amarelo);} }
+
+  /* Lista de Palavras */
+  .word-list {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 5px; margin-top: 15px; width: 100%;
+  }
+  .word-tag {
+    background: #fff; padding: 4px 10px; border-radius: 15px;
+    font-weight: 800; font-size: 0.75rem; border: 2px solid var(--marrom);
+    color: var(--marrom); transition: all 0.3s;
+  }
+  .word-tag.done {
+    background: var(--verde); color: #fff; border-color: var(--verde);
+    text-decoration: line-through;
+  }
+
+  /* Botões */
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s;
+    margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+  .btn-hint { background: var(--azul); color: #fff; }
+
+  /* Overlay de Vitória de Fase */
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    border-radius: 15px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy {
+    font-size: 3rem; animation: float 2s infinite alternate;
+    margin-bottom: 10px; display: inline-block;
+  }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  /* Ranking Top 3 */
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%;
+    margin-top: 5px; font-size: 0.85rem;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 3px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: BOAS-VINDAS E NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo à Saga Pasterry!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Digite seu nome para começar a caçar os recheios.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: MENU DE NÍVEIS -->
+<div class="screen" id="menuScreen">
+  <h2 style="color: var(--marrom); font-size: 1.2rem; margin-bottom: 10px;">Escolha o Nível</h2>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
+<!-- TELA 3: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>NÍVEL</span>
+      <strong id="hudLevel">1</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMA</span>
+      <strong id="hudTheme" style="font-size:0.8rem; max-width:100px; text-align:center;">Clássicos</strong>
+    </div>
+    <div class="hud-item">
+      <span>FALTAM</span>
+      <strong id="hudWordsLeft">0</strong>
+    </div>
+    <div class="hud-item">
+      <span>TEMPO</span>
+      <strong id="hudTimer">00:00</strong>
+    </div>
+  </div>
+
+  <div id="game-container">
+    <div id="grid"></div>
+    
+    <div class="overlay hidden" id="overlay">
+      <div class="trophy" id="overlayIcon">🏆</div>
+      <h2 id="overlayTitle">Parabéns!</h2>
+      <p id="overlayText">Você encontrou todas as palavras!</p>
+      
+      <!-- Ranking Top 3 -->
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Melhores Tempos (Neste Nível)</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="nextLevelBtn">Próximo Nível</button>
+      <button class="btn" id="backToMenuBtn" style="background:#ccc; color:#333;">Voltar ao Menu</button>
+    </div>
+  </div>
+
+  <div class="word-list" id="wordList"></div>
+  
+  <div style="display:flex; gap:10px; margin-top:10px;">
+    <button class="btn btn-hint" id="hintBtn">💡 Dica (<span id="hintCount">3</span>)</button>
+    <button class="btn" id="exitBtn" style="background:var(--vermelho);">Sair</button>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO DOS NÍVEIS
+// ==========================================
+const levelsConfig = [
+  { id: 1, theme: "Clássicos", size: 10, words: ["PASTERRY", "CARNE", "QUEIJO", "PIZZA", "FRANGO"] },
+  { id: 2, theme: "Da Horta", size: 10, words: ["PASTERRY", "PALMITO", "MILHO", "ERVILHA", "CATUPIRY"] },
+  { id: 3, theme: "Nobres", size: 11, words: ["PASTERRY", "CAMARAO", "BACON", "CALABRESA", "FILE"] },
+  { id: 4, theme: "Doces", size: 11, words: ["PASTERRY", "CHOCOLATE", "PRESTIGIO", "MORANGO", "ROMEU"] },
+  { id: 5, theme: "Bebidas", size: 11, words: ["PASTERRY", "REFRIGERANTE", "CALDO", "SUCO", "AGUA"] },
+  { id: 6, theme: "Combos", size: 12, words: ["PASTERRY", "PASTEL", "REFRESCO", "PORCAO", "BATATA"] },
+  { id: 7, theme: "Apimentados", size: 12, words: ["PASTERRY", "PIMENTA", "MEXICANO", "JALAPENO", "FOGO"] },
+  { id: 8, theme: "Gourmet", size: 12, words: ["PASTERRY", "TRUFA", "CHEDDAR", "PARMA", "RUCULA"] },
+  { id: 9, theme: "Vegetarianos", size: 13, words: ["PASTERRY", "BERINJELA", "ABOBRINHA", "TOFU", "ESPINAFRE"] },
+  { id: 10, theme: "A Lenda", size: 13, words: ["PASTERRY", "MEGA", "TUDO", "ESPECIAL", "SUPREMO"] }
+];
+
+const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const directions = [
+  { r: 0, c: 1 },  { r: 1, c: 0 },  { r: 1, c: 1 },  { r: 1, c: -1 },
+  { r: 0, c: -1 }, { r: -1, c: 0 }, { r: -1, c: 1 }, { r: -1, c: -1 }
+];
+
+// ==========================================
+// ESTADO DO JOGO E PROGRESSO SALVO
+// ==========================================
+let playerName = localStorage.getItem('pasterryCacaName') || '';
+let unlockedLevel = parseInt(localStorage.getItem('pasterryCacaUnlocked') || '0', 10);
+let completedLevels = JSON.parse(localStorage.getItem('pasterryCacaCompleted') || '[]');
+// Recordes: um array de objetos { level: 1, time: 45, name: "João" }
+let rankings = JSON.parse(localStorage.getItem('pasterryCacaRankings') || '[]');
+
+let currentLevelIndex = 0;
+let grid = [];
+let currentWords = [];
+let foundWords = new Set();
+let isSelecting = false;
+let startCell = null;
+let selectedCells = [];
+let startTime = null;
+let timerInterval = null;
+let hintsLeft = 3;
+let currentSeconds = 0;
+
+// Elementos DOM
+const welcomeScreen = document.getElementById('welcomeScreen');
+const menuScreen = document.getElementById('menuScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+const levelGrid = document.getElementById('levelGrid');
+const gridEl = document.getElementById('grid');
+const wordListEl = document.getElementById('wordList');
+const hudLevel = document.getElementById('hudLevel');
+const hudTheme = document.getElementById('hudTheme');
+const hudWordsLeft = document.getElementById('hudWordsLeft');
+const hudTimer = document.getElementById('hudTimer');
+const overlay = document.getElementById('overlay');
+const hintBtn = document.getElementById('hintBtn');
+const hintCountSpan = document.getElementById('hintCount');
+const gameContainer = document.getElementById('game-container');
+
+// ==========================================
+// INICIALIZAÇÃO E NOME DO JOGADOR
+// ==========================================
+function initApp() {
+  if (playerName) {
+    // Se já tem nome salvo, pula a tela de boas-vindas
+    inputName.value = playerName;
+    showMenu();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) {
+    alert("Por favor, digite seu nome!");
+    return;
+  }
+  playerName = typedName;
+  localStorage.setItem('pasterryCacaName', playerName);
+  playBeep(600, 'sine', 0.1);
+  showMenu();
+});
+
+function showMenu() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  renderMenu();
+}
+
+// ==========================================
+// LÓGICA DO MENU E RANKING
+// ==========================================
+function renderMenu() {
+  levelGrid.innerHTML = '';
+  levelsConfig.forEach((lvl, index) => {
+    const btn = document.createElement('div');
+    btn.className = 'level-btn';
+    
+    const isLocked = index > unlockedLevel;
+    const isCompleted = completedLevels.includes(index);
+    
+    if (isLocked) btn.classList.add('locked');
+    else if (isCompleted) btn.classList.add('completed');
+    
+    // Verifica se o jogador atual é o dono do recorde neste nível
+    const levelRecord = rankings.find(r => r.level === index && r.name === playerName);
+    let crownHtml = '';
+    if (levelRecord && isCompleted) {
+      crownHtml = `<div class="crown">👑</div>`;
+    }
+    
+    btn.innerHTML = `${crownHtml}${index + 1}<span>${lvl.theme}</span>`;
+    
+    if (!isLocked) {
+      btn.onclick = () => startLevel(index);
+    }
+    levelGrid.appendChild(btn);
+  });
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function startLevel(index) {
+  currentLevelIndex = index;
+  const config = levelsConfig[index];
+  
+  hudLevel.textContent = config.id;
+  hudTheme.textContent = config.theme;
+  hintsLeft = 3;
+  hintCountSpan.textContent = hintsLeft;
+  hintBtn.disabled = false;
+  hintBtn.style.opacity = 1;
+  
+  menuScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  overlay.classList.add('hidden');
+  
+  generateGrid(config.size, config.words);
+  renderWordList();
+  startTimer();
+  playBeep(600, 'sine', 0.1);
+}
+
+function generateGrid(size, words) {
+  grid = Array(size).fill(null).map(() => Array(size).fill(''));
+  foundWords.clear();
+  currentWords = [...words];
+  selectedCells = [];
+  
+  let shuffledWords = [...words].sort(() => Math.random() - 0.5);
+  const pasterryIndex = shuffledWords.indexOf("PASTERRY");
+  if (pasterryIndex > -1) {
+    shuffledWords.splice(pasterryIndex, 1);
+    shuffledWords.unshift("PASTERRY");
+  }
+
+  shuffledWords.forEach(word => {
+    tryPlaceWord(word, size);
+  });
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c] === '') {
+        grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+    }
+  }
+
+  renderGrid(size);
+  hudWordsLeft.textContent = currentWords.length;
+}
+
+function tryPlaceWord(word, size) {
+  let attempts = 0;
+  while (attempts < 200) {
+    const dir = directions[Math.floor(Math.random() * directions.length)];
+    const row = Math.floor(Math.random() * size);
+    const col = Math.floor(Math.random() * size);
+    
+    if (canPlaceWord(word, row, col, dir.r, dir.c, size)) {
+      placeWord(word, row, col, dir.r, dir.c);
+      return true;
+    }
+    attempts++;
+  }
+  return false;
+}
+
+function canPlaceWord(word, row, col, dr, dc, size) {
+  const endRow = row + (word.length - 1) * dr;
+  const endCol = col + (word.length - 1) * dc;
+  
+  if (endRow < 0 || endRow >= size || endCol < 0 || endCol >= size) return false;
+  
+  for (let i = 0; i < word.length; i++) {
+    const r = row + i * dr;
+    const c = col + i * dc;
+    if (grid[r][c] !== '' && grid[r][c] !== word[i]) return false;
+  }
+  return true;
+}
+
+function placeWord(word, row, col, dr, dc) {
+  for (let i = 0; i < word.length; i++) {
+    grid[row + i * dr][col + i * dc] = word[i];
+  }
+}
+
+function renderGrid(size) {
+  gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  gridEl.innerHTML = '';
+  
+  const cellSize = Math.floor((Math.min(window.innerWidth - 60, 400)) / size);
+  
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      cell.style.fontSize = (cellSize * 0.6) + 'px';
+      cell.textContent = grid[r][c];
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      gridEl.appendChild(cell);
+    }
+  }
+}
+
+function renderWordList() {
+  wordListEl.innerHTML = '';
+  currentWords.forEach(word => {
+    const tag = document.createElement('div');
+    tag.className = 'word-tag';
+    tag.textContent = word;
+    tag.dataset.word = word;
+    wordListEl.appendChild(tag);
+  });
+}
+
+// ==========================================
+// INTERAÇÃO E SELEÇÃO
+// ==========================================
+function getCellFromEvent(e) {
+  let clientX, clientY;
+  if (e.touches && e.touches.length > 0) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  const target = document.elementFromPoint(clientX, clientY);
+  if (target && target.classList.contains('cell') && !target.classList.contains('found')) {
+    return target;
+  }
+  return null;
+}
+
+function startSelection(e) {
+  e.preventDefault();
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+  
+  isSelecting = true;
+  startCell = cell;
+  selectedCells = [cell];
+  updateSelectionUI();
+}
+
+function moveSelection(e) {
+  e.preventDefault();
+  if (!isSelecting || !startCell) return;
+  
+  const currentCell = getCellFromEvent(e);
+  if (!currentCell) return;
+  
+  const r1 = parseInt(startCell.dataset.r);
+  const c1 = parseInt(startCell.dataset.c);
+  const r2 = parseInt(currentCell.dataset.r);
+  const c2 = parseInt(currentCell.dataset.c);
+  
+  const dr = Math.sign(r2 - r1);
+  const dc = Math.sign(c2 - c1);
+  
+  if (dr !== 0 && dc !== 0 && Math.abs(r2 - r1) !== Math.abs(c2 - c1)) return;
+  
+  const distance = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1));
+  selectedCells = [];
+  for (let i = 0; i <= distance; i++) {
+    const r = r1 + i * dr;
+    const c = c1 + i * dc;
+    const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+    if (cell) selectedCells.push(cell);
+  }
+  updateSelectionUI();
+}
+
+function endSelection(e) {
+  if (!isSelecting) return;
+  e.preventDefault();
+  isSelecting = false;
+  
+  const word = selectedCells.map(c => grid[c.dataset.r][c.dataset.c]).join('');
+  const reverseWord = word.split('').reverse().join('');
+  
+  let match = null;
+  if (currentWords.includes(word) && !foundWords.has(word)) match = word;
+  else if (currentWords.includes(reverseWord) && !foundWords.has(reverseWord)) match = reverseWord;
+  
+  if (match) {
+    foundWords.add(match);
+    selectedCells.forEach(c => c.classList.add('found'));
+    
+    const tag = document.querySelector(`.word-tag[data-word="${match}"]`);
+    if (tag) tag.classList.add('done');
+    
+    hudWordsLeft.textContent = currentWords.length - foundWords.size;
+    playBeep(800, 'sine', 0.1);
+    
+    if (match === "PASTERRY") {
+      playBeep(1000, 'sine', 0.1);
+      setTimeout(() => playBeep(1200, 'sine', 0.2), 100);
+    }
+    
+    if (foundWords.size === currentWords.length) {
+      winLevel();
+    }
+  } else {
+    playBeep(200, 'square', 0.1);
+  }
+  
+  setTimeout(() => {
+    selectedCells.forEach(c => c.classList.remove('selected'));
+    selectedCells = [];
+    startCell = null;
+  }, 200);
+}
+
+function updateSelectionUI() {
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+  selectedCells.forEach(c => c.classList.add('selected'));
+}
+
+gameContainer.addEventListener('mousedown', startSelection);
+gameContainer.addEventListener('mousemove', moveSelection);
+window.addEventListener('mouseup', endSelection);
+gameContainer.addEventListener('touchstart', startSelection, { passive: false });
+gameContainer.addEventListener('touchmove', moveSelection, { passive: false });
+window.addEventListener('touchend', endSelection);
+
+// ==========================================
+// DICAS
+// ==========================================
+hintBtn.addEventListener('click', () => {
+  if (hintsLeft <= 0) return;
+  
+  const missingWords = currentWords.filter(w => !foundWords.has(w));
+  if (missingWords.length === 0) return;
+  
+  const targetWord = missingWords[0];
+  
+  let found = false;
+  for (let r = 0; r < grid.length && !found; r++) {
+    for (let c = 0; c < grid.length && !found; c++) {
+      if (grid[r][c] === targetWord[0]) {
+        const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+        if (cell && !cell.classList.contains('found')) {
+          cell.classList.add('hint');
+          setTimeout(() => cell.classList.remove('hint'), 2000);
+          found = true;
+        }
+      }
+    }
+  }
+  
+  hintsLeft--;
+  hintCountSpan.textContent = hintsLeft;
+  playBeep(400, 'sine', 0.1);
+  
+  if (hintsLeft <= 0) {
+    hintBtn.disabled = true;
+    hintBtn.style.opacity = 0.5;
+  }
+});
+
+// ==========================================
+// TEMPO E VITÓRIA (COM SISTEMA DE RANKING)
+// ==========================================
+function startTimer() {
+  startTime = Date.now();
+  currentSeconds = 0;
+  hudTimer.textContent = "00:00";
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    currentSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(currentSeconds / 60).toString().padStart(2, '0');
+    const s = (currentSeconds % 60).toString().padStart(2, '0');
+    hudTimer.textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function winLevel() {
+  clearInterval(timerInterval);
+  playBeep(600, 'sine', 0.1); setTimeout(() => playBeep(800, 'sine', 0.1), 100); setTimeout(() => playBeep(1000, 'sine', 0.2), 200);
+  
+  const config = levelsConfig[currentLevelIndex];
+  
+  // 1. Salva Nível Completo
+  if (!completedLevels.includes(currentLevelIndex)) {
+    completedLevels.push(currentLevelIndex);
+    localStorage.setItem('pasterryCacaCompleted', JSON.stringify(completedLevels));
+  }
+  // 2. Desbloqueia Próximo
+  if (currentLevelIndex >= unlockedLevel && currentLevelIndex < levelsConfig.length - 1) {
+    unlockedLevel = currentLevelIndex + 1;
+    localStorage.setItem('pasterryCacaUnlocked', unlockedLevel);
+  }
+
+  // 3. SALVA NO RANKING
+  let isNewRecord = false;
+  
+  // Verifica se o jogador já tem um tempo salvo neste nível
+  const existingRecordIndex = rankings.findIndex(r => r.level === currentLevelIndex && r.name === playerName);
+  
+  if (existingRecordIndex > -1) {
+    // Se já tem, só atualiza se o novo tempo for menor
+    if (currentSeconds < rankings[existingRecordIndex].time) {
+      rankings[existingRecordIndex].time = currentSeconds;
+      isNewRecord = true;
+    }
+  } else {
+    // Se não tem, cria um novo registro
+    rankings.push({ level: currentLevelIndex, name: playerName, time: currentSeconds });
+    isNewRecord = true;
+  }
+  
+  localStorage.setItem('pasterryCacaRankings', JSON.stringify(rankings));
+
+  // 4. Prepara a Tela Final
+  const isLastLevel = currentLevelIndex === levelsConfig.length - 1;
+  
+  document.getElementById('overlayIcon').textContent = isLastLevel ? '👑' : '🎉';
+  document.getElementById('overlayTitle').textContent = isLastLevel ? "VOCÊ É UMA LENDA!" : "Parabéns!";
+  
+  let recordMsg = isNewRecord ? "<br><span style='color:var(--verde); font-weight:900;'>👑 NOVO RECORDE PESSOAL!</span>" : "";
+  
+  document.getElementById('overlayText').innerHTML = isLastLevel 
+    ? `Incrível, <b>${playerName}</b>! Você completou a Saga Pasterry em ${hudTimer.textContent}.<br>Você é oficialmente um Mestre dos Recheios!` 
+    : `Mandou bem, <b>${playerName}</b>! Você encontrou tudo em ${hudTimer.textContent}.${recordMsg}`;
+
+  // 5. Monta o Ranking Top 3 deste nível
+  const levelRanks = rankings.filter(r => r.level === currentLevelIndex)
+                             .sort((a, b) => a.time - b.time)
+                             .slice(0, 3);
+                             
+  let rankHtml = levelRanks.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+    const timeStr = `${Math.floor(r.time / 60).toString().padStart(2, '0')}:${(r.time % 60).toString().padStart(2, '0')}`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${timeStr}</b></div>`;
+  }).join('');
+
+  document.getElementById('rankingList').innerHTML = rankHtml;
+  document.getElementById('rankingBox').style.display = 'block';
+
+  if (isLastLevel) {
+    document.getElementById('nextLevelBtn').style.display = 'none';
+  } else {
+    document.getElementById('nextLevelBtn').style.display = 'block';
+  }
+  
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// NAVEGAÇÃO
+// ==========================================
+document.getElementById('nextLevelBtn').addEventListener('click', () => {
+  if (currentLevelIndex < levelsConfig.length - 1) {
+    startLevel(currentLevelIndex + 1);
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', () => {
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  renderMenu(); // Atualiza para mostrar as coroas
+});
+
+document.getElementById('exitBtn').addEventListener('click', () => {
+  clearInterval(timerInterval);
+  gameScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+  renderMenu();
+});
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+// ==========================================
+// START
+// ==========================================
+initApp();
+</script>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>A Jornada do Pastel - Pasterry</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --cinza: #ced4da;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+    --papel: #d4a373;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+    transition: background 0.5s;
+  }
+
+  @keyframes panic {
+    0% { background-color: var(--vermelho); }
+    50% { background-color: var(--marrom); }
+    100% { background-color: var(--vermelho); }
+  }
+  .panic-mode { animation: panic 0.2s infinite; }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 420px; margin-bottom: 5px;
+    background: var(--marrom); padding: 5px 10px; border-radius: 12px;
+    color: var(--amarelo); font-weight: 800; font-size: 0.9rem;
+    z-index: 20;
+  }
+  .logo-area { display: flex; align-items: center; gap: 8px; }
+  .logo-container {
+    width: 30px; height: 30px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.6rem; margin-top: 5px; color: var(--amarelo);}
+  
+  .hearts { color: var(--vermelho); font-size: 1.1rem; letter-spacing: 2px; }
+
+  .player-info {
+    width: 100%; max-width: 420px; text-align: center; font-weight: 900;
+    font-size: 1rem; color: var(--marrom); margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 1px; z-index: 20;
+    display: flex; justify-content: center; gap: 10px; align-items: center;
+  }
+
+  .pest-warning {
+    font-size: 0.7rem; background: var(--vermelho); color: #fff;
+    padding: 2px 6px; border-radius: 4px; animation: pulseWarn 1s infinite alternate;
+  }
+  @keyframes pulseWarn { from { opacity: 0.5; } to { opacity: 1; } }
+
+  .hud-levels {
+    display: flex; justify-content: space-between;
+    width: 100%; max-width: 420px; background: #fff;
+    padding: 8px 15px; border-radius: 12px; border: 3px solid var(--marrom);
+    margin-bottom: 8px; font-weight: 900; font-size: 0.85rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 20;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.65rem; color: #888; }
+  .hud-item strong { font-size: 1.05rem; color: var(--laranja); }
+
+  .level-title {
+    position: absolute; top: 30%; left: 0; width: 100%;
+    text-align: center; font-size: 2rem; font-weight: 900;
+    color: rgba(74, 14, 20, 0.1); pointer-events: none;
+    text-transform: uppercase; transform: rotate(-10deg);
+    z-index: 1;
+  }
+
+  #game {
+    position: relative;
+    width: 100%; max-width: 420px;
+    height: 55vh;
+    background-color: #fffdf8;
+    border: 4px dashed var(--laranja);
+    border-radius: 20px;
+    overflow: hidden;
+    touch-action: none;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transition: background-color 0.5s, border-color 0.5s;
+    z-index: 2;
+  }
+
+  /* A Sacola de Delivery */
+  #basket {
+    position: absolute; bottom: 8px; width: 90px; height: 75px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    transition: left .05s ease-out; /* Mais rápida para pegar mais coisas */
+    z-index: 5;
+  }
+  #basket::before {
+    content: ''; position: absolute; bottom: 60px;
+    width: 50px; height: 30px; border: 4px solid var(--papel);
+    border-bottom: none; border-radius: 15px 15px 0 0;
+    z-index: 1; transition: border-color 0.5s;
+  }
+  .bag-body {
+    width: 90px; height: 60px;
+    background: var(--papel);
+    border: 3px solid #a67c52;
+    border-radius: 5px;
+    position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset -5px 0 0 rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.3);
+    background-image: linear-gradient(to right, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    transition: background 0.5s, border-color 0.5s;
+  }
+  .bag-body::after {
+    content: 'Pasterry';
+    font-family: 'Brush Script MT', cursive;
+    font-size: 1.2rem; color: var(--marrom);
+    transform: rotate(-5deg);
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+  }
+
+  #basket.frozen .bag-body {
+    background: #a5d8ff; border-color: #4dabf7;
+    box-shadow: inset 0 0 10px #fff, 0 0 15px #4dabf7;
+  }
+  #basket.frozen::before { border-color: #a5d8ff; }
+
+  .item {
+    position: absolute; font-size: 2rem; width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center; z-index: 4;
+  }
+  .item span { display: inline-block; animation: wiggle 0.5s infinite alternate; }
+  @keyframes wiggle { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  
+  .item.pest span { animation: crawl 0.2s infinite alternate; }
+  @keyframes crawl { from { transform: translateY(0) rotate(-15deg) scale(1); } to { transform: translateY(5px) rotate(15deg) scale(1.1); } }
+
+  .pop {
+    position: absolute; font-weight: 900; font-size: 1.2rem;
+    color: var(--verde); text-shadow: 1px 1px 0 #fff;
+    animation: rise .7s ease-out forwards; pointer-events: none; z-index: 6;
+  }
+  .pop.bad { color: var(--vermelho); }
+  .pop.freeze { color: #1c7ed6; font-size: 1.5rem; }
+  .pop.pest { color: #5c940d; font-size: 1.4rem; }
+  .pop.fatal { color: #e03131; font-size: 1.8rem; animation: fatalPop 1s forwards; }
+  @keyframes rise { to { transform: translateY(-40px) scale(1.2); opacity: 0; } }
+  @keyframes fatalPop { 0% { transform: scale(0); } 50% { transform: scale(2); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+  .overlay {
+    position: absolute; inset: 0; background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; padding: 15px; text-align: center; z-index: 10;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.4rem; color: var(--laranja); line-height: 1.2; }
+  .overlay p { font-size: 0.85rem; line-height: 1.4; }
+  
+  .name-input {
+    width: 80%; max-width: 250px; padding: 12px; font-size: 1.1rem;
+    text-align: center; border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+  }
+  .name-input:focus { border-color: var(--laranja); }
+
+  .btn {
+    padding: 12px 30px; font-size: 1rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 30px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .progress-container {
+    width: 100%; height: 10px; background: #ddd; border-radius: 5px; margin-top: 5px; overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%; background: var(--verde); width: 0%; transition: width 0.2s;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container"><img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';"></div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="hearts" id="heartsHud">❤️❤️❤️❤️❤️</div>
+</div>
+
+<div class="player-info" id="playerNameHud">
+  <span id="playerNameText">Jogador</span>
+  <span class="pest-warning" id="pestWarning" style="display:none;">⚠️ PRAGAS À VISTA</span>
+</div>
+
+<div class="hud-levels">
+  <div class="hud-item">
+    <span>NÍVEL</span>
+    <strong id="levelHud">1 / 30</strong>
+  </div>
+  <div class="hud-item">
+    <span>META</span>
+    <strong id="targetHud">20 pts</strong>
+  </div>
+  <div class="hud-item">
+    <span>PONTOS</span>
+    <strong id="score">0</strong>
+  </div>
+  <div class="hud-item">
+    <span>TEMPO</span>
+    <strong id="time" style="color:var(--vermelho);">03:00</strong>
+  </div>
+</div>
+
+<div id="game">
+  <div class="level-title" id="levelTitle">NÍVEL 1</div>
+  
+  <div id="basket">
+    <div class="bag-body"></div>
+  </div>
+  
+  <div class="progress-container" style="position:absolute; top:0; z-index:10;">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <h2>A Jornada do Pastel</h2>
+    <p>Você tem <b>1 Hora e Meia</b> (30 níveis) para se tornar uma Lenda!<br>Agora com muita comida boa para encher a sacola!</p>
+    <p style="color:var(--vermelho); font-size:0.8rem; font-weight:bold; margin-top:5px;">⚠️ CUIDADO COM AS PRAGAS!<br>Mosca: perde metade dos pontos<br>Barata: zera todo o progresso!</p>
+    
+    <input type="text" id="playerName" class="name-input" placeholder="Seu Nome" maxlength="12">
+    
+    <button class="btn" id="startBtn">Iniciar Jornada</button>
+    <button class="btn" id="resetBtn" style="background:#ccc; color:#333; font-size:0.8rem; padding:8px 15px;">Apagar Progresso Salvo</button>
+  </div>
+</div>
+
+<script>
+const game = document.getElementById('game');
+const basket = document.getElementById('basket');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const scoreEl = document.getElementById('score');
+const timeEl = document.getElementById('time');
+const levelHud = document.getElementById('levelHud');
+const targetHud = document.getElementById('targetHud');
+const heartsHud = document.getElementById('heartsHud');
+const progressBar = document.getElementById('progressBar');
+const playerNameText = document.getElementById('playerNameText');
+const nameInput = document.getElementById('playerName');
+const levelTitle = document.getElementById('levelTitle');
+const pestWarning = document.getElementById('pestWarning');
+
+const ITEM_SIZE = 44;
+const BASKET_W = 90;
+const LEVEL_TIME = 180; // 3 minutos
+const MAX_LIVES = 5;
+
+// SVGs para as pragas
+const svgMosca = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="22" rx="8" ry="12" fill="#495057"/>
+<path d="M20 12V32 M16 14V30 M24 14V30" stroke="#212529" stroke-width="2"/>
+<path d="M20 22C10 10 5 15 10 22C15 29 20 22 20 22Z" fill="#adb5bd" opacity="0.8" stroke="#212529" stroke-width="1"/>
+<path d="M20 22C30 10 35 15 30 22C25 29 20 22 20 22Z" fill="#adb5bd" opacity="0.8" stroke="#212529" stroke-width="1"/>
+<circle cx="16" cy="11" r="4" fill="#e03131"/>
+<circle cx="24" cy="11" r="4" fill="#e03131"/>
+<circle cx="16" cy="11" r="1.5" fill="#fff"/>
+<circle cx="24" cy="11" r="1.5" fill="#fff"/>
+<path d="M16 8L12 4 M24 8L28 4" stroke="#212529" stroke-width="2" stroke-linecap="round"/>
+</svg>`;
+
+const svgBarata = `<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="22" cy="24" rx="12" ry="16" fill="#5c3a21"/>
+<ellipse cx="22" cy="22" rx="10" ry="14" fill="#8b5a2b"/>
+<path d="M22 8V36" stroke="#5c3a21" stroke-width="2"/>
+<path d="M15 12L14 32 M29 12L30 32" stroke="#5c3a21" stroke-width="2"/>
+<path d="M12 22L22 8" stroke="#5c3a21" stroke-width="3" stroke-linecap="round"/>
+<path d="M32 22L22 8" stroke="#5c3a21" stroke-width="3" stroke-linecap="round"/>
+<circle cx="22" cy="10" r="5" fill="#4a2e15"/>
+<path d="M18 6L12 2 M26 6L32 2" stroke="#4a2e15" stroke-width="2" stroke-linecap="round"/>
+</svg>`;
+
+// --- NOVOS TEMAS PARA 30 NÍVEIS (BEM MAIS COMIDA BOA) ---
+const levelThemes = [
+  // Níveis 1 a 5 (Fáceis, muita comida)
+  { name: "TREINAMENTO", bg: "#fffdf8", color: "#d4a373", pool: ['pastel', 'pastel', 'refri', 'refri', 'queijo'] },
+  { name: "NOITE DO QUEIJO", bg: "#fff3bf", color: "#ffd43b", pool: ['pastel', 'queijo', 'queijo', 'queijo', 'refri', 'pimenta'] },
+  { name: "SABOR BACON", bg: "#ffe3e3", color: "#ff8787", pool: ['pastel', 'bacon', 'bacon', 'bacon', 'refri', 'pimenta'] },
+  { name: "FESTA DA PIZZA", bg: "#ffe8cc", color: "#ff922b", pool: ['pizza', 'pizza', 'refri', 'pastel', 'bomba'] },
+  { name: "CONGELADOS", bg: "#e7f5ff", color: "#74c0fc", pool: ['pastel', 'pastel', 'refri', 'gelo', 'pimenta'] },
+  // Níveis 6 a 10 (Começam as pragas, mas muita comida)
+  { name: "CALDO DE CANA", bg: "#ebfbee", color: "#8ce99a", pool: ['pastel', 'caldo', 'caldo', 'caldo', 'pastel', 'pimenta', 'mosca'] },
+  { name: "DELIVERY VIP", bg: "#f3d9fa", color: "#b197fc", pool: ['pastel', 'motoboy', 'motoboy', 'comanda', 'refri', 'bomba', 'mosca'] },
+  { name: "MODO APIMENTADO", bg: "#ffc9c9", color: "#fa5252", pool: ['pastel', 'pastel', 'queijo', 'bacon', 'pimenta', 'pimenta', 'barata'] },
+  { name: "HORA DO HAMBURGER", bg: "#ffec99", color: "#fcc419", pool: ['hamburger', 'hamburger', 'refri', 'pastel', 'bomba', 'mosca'] },
+  { name: "CHUVA DE COMANDAS", bg: "#d0ebff", color: "#4dabf7", pool: ['comanda', 'comanda', 'pastel', 'refri', 'pimenta', 'barata'] },
+  // Níveis 11 a 15 (Mix de doces e salgados)
+  { name: "FESTA DO DOCE", bg: "#fff0f6", color: "#f06595", pool: ['chocolate', 'chocolate', 'pastel', 'refri', 'pimenta', 'mosca'] },
+  { name: "MODO TURBO", bg: "#e5dbff", color: "#845ef7", pool: ['pastel', 'motoboy', 'motoboy', 'refri', 'bomba', 'barata'] },
+  { name: "COMBINAÇÃO PERFEITA", bg: "#c5f6fa", color: "#22b8cf", pool: ['pastel', 'pastel', 'refri', 'queijo', 'bacon', 'pimenta', 'mosca'] },
+  { name: "MUITA BOMBA", bg: "#ffa8a8", color: "#e03131", pool: ['pastel', 'queijo', 'bacon', 'bomba', 'bomba', 'barata'] },
+  { name: "CAOS NO DELIVERY", bg: "#f8f0fc", color: "#cc5de8", pool: ['comanda', 'motoboy', 'pastel', 'refri', 'bomba', 'pimenta', 'mosca', 'barata'] },
+  // Níveis 16 a 20 (A coisa aperta, mas tem muita comida)
+  { name: "NOITE DO PASTEL", bg: "#212529", color: "#495057", pool: ['pastel', 'pastel', 'refri', 'queijo', 'pimenta', 'mosca'] },
+  { name: "MODO GOURMET", bg: "#fff9db", color: "#fab005", pool: ['bacon', 'queijo', 'comanda', 'pastel', 'pimenta', 'bomba', 'barata'] },
+  { name: "CINTURÃO DE FOGO", bg: "#ffc9c9", color: "#c92a2a", pool: ['pastel', 'refri', 'pimenta', 'pimenta', 'bomba', 'mosca', 'barata'] },
+  { name: "O CHEF ENLOUQUECEU", bg: "#e599f7", color: "#ae3ec9", pool: ['comanda', 'gelo', 'pastel', 'bomba', 'pimenta', 'motoboy', 'mosca', 'barata'] },
+  { name: "A LENDA", bg: "#212529", color: "#fcd116", pool: ['pastel', 'comanda', 'queijo', 'bacon', 'bomba', 'pimenta', 'gelo', 'mosca', 'barata'] },
+  // Níveis 21 a 25 (Novos temas com muita comida)
+  { name: "FESTA NA PRAIA", bg: "#e0fbfc", color: "#3bc9db", pool: ['pastel', 'refri', 'caldo', 'caldo', 'mosca'] },
+  { name: "INVASÃO VEGANA", bg: "#ebfbee", color: "#69db7c", pool: ['pastel', 'queijo', 'comanda', 'pimenta', 'barata'] },
+  { name: "PASTEL DE CHOCOLATE", bg: "#fff0f6", color: "#f06595", pool: ['chocolate', 'chocolate', 'pastel', 'refri', 'mosca'] },
+  { name: "MODO NOTURNO", bg: "#212529", color: "#495057", pool: ['pastel', 'pastel', 'refri', 'motoboy', 'pimenta', 'bomba', 'barata'] },
+  { name: "A VOLTA DOS MORTOS", bg: "#2b2b2b", color: "#555", pool: ['pastel', 'queijo', 'bacon', 'bomba', 'mosca', 'barata'] },
+  // Níveis 26 a 30 (O Desafio Final, mas ainda com muita comida)
+  { name: "MODO HARDCORE", bg: "#ffc9c9", color: "#c92a2a", pool: ['pastel', 'pastel', 'refri', 'pimenta', 'pimenta', 'bomba', 'barata'] },
+  { name: "O DELIVERY MAIS RÁPIDO", bg: "#e5dbff", color: "#845ef7", pool: ['motoboy', 'motoboy', 'pastel', 'comanda', 'bomba', 'mosca'] },
+  { name: "FESTA NA PASTELARIA", bg: "#fff3bf", color: "#ffd43b", pool: ['pastel', 'refri', 'queijo', 'bacon', 'pizza', 'hamburger', 'chocolate', 'pimenta'] },
+  { name: "A PROVA FINAL", bg: "#f8f0fc", color: "#cc5de8", pool: ['pastel', 'comanda', 'queijo', 'bacon', 'bomba', 'pimenta', 'gelo', 'mosca', 'barata'] },
+  { name: "LENDA SUPREMA", bg: "#212529", color: "#fcd116", pool: ['pastel', 'pastel', 'comanda', 'comanda', 'queijo', 'bacon', 'bomba', 'pimenta', 'gelo', 'mosca', 'barata'] }
+];
+
+const itemMap = {
+  pastel: { emoji: '🥟', pts: 1 },
+  refri: { emoji: '🥤', pts: 1 },
+  queijo: { emoji: '🧀', pts: 2 },
+  bacon: { emoji: '🥓', pts: 2 },
+  pizza: { emoji: '🍕', pts: 2 },
+  caldo: { emoji: '🍹', pts: 1 },
+  motoboy: { emoji: '🛵', pts: 2 },
+  hamburger: { emoji: '🍔', pts: 2 },
+  comanda: { emoji: '🧾', pts: 3 },
+  chocolate: { emoji: '🍫', pts: 2 },
+  pimenta: { emoji: '🌶️', pts: -1, isBad: true },
+  bomba: { emoji: '💣', pts: -2, isBad: true },
+  gelo: { emoji: '🧊', pts: 0, isFreeze: true },
+  mosca: { customSvg: svgMosca, pts: -999, isMosca: true },
+  barata: { customSvg: svgBarata, pts: -9999, isBarata: true }
+};
+
+// Gerando 30 níveis com metas ajustadas
+const levels = Array.from({length: 30}, (_, i) => {
+  return { 
+    level: i + 1, 
+    target: 20 + (i * 8), // Meta aumenta a cada nível
+    speedMult: 1 + (i * 0.05), 
+  };
+});
+
+let running = false;
+let score = 0;
+let timeLeft = LEVEL_TIME;
+let lives = MAX_LIVES;
+let currentLevelIndex = 0;
+let items = [];
+let spawnTimer = null;
+let countdown = null;
+let rafId = null;
+let lastTime = 0;
+let targetBasketX = 0;
+let actualBasketX = 0;
+let isFrozen = false;
+
+let playerName = localStorage.getItem('pasterryPlayerName') || '';
+let savedProgress = parseInt(localStorage.getItem('pasterryJourneyLvl') || '0', 10);
+if (savedProgress > 0) {
+  currentLevelIndex = savedProgress;
+  if (playerName) {
+    nameInput.value = playerName;
+    overlay.querySelector('h2').innerHTML = `Bem-vindo, ${playerName}!`;
+    overlay.querySelector('p').innerHTML = `Você parou no <b>Nível ${currentLevelIndex + 1}</b>.<br>Pronto para continuar?`;
+    startBtn.textContent = "Continuar Jornada";
+  }
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateHearts() {
+  heartsHud.innerHTML = '❤️'.repeat(lives) + '🖤'.repeat(MAX_LIVES - lives);
+}
+
+// ---- ÁUDIO ----
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playBeep(freq, type, duration) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR'; utterance.rate = 1.1;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+// ---- CONTROLES ----
+function setBasketTarget(x) {
+  if (isFrozen) return; 
+  const maxX = game.clientWidth - BASKET_W - 8;
+  targetBasketX = Math.max(4, Math.min(maxX, x));
+}
+function resetBasket() {
+  const center = (game.clientWidth - BASKET_W) / 2;
+  targetBasketX = center; actualBasketX = center;
+  basket.style.left = center + 'px';
+  isFrozen = false;
+  basket.classList.remove('frozen');
+}
+
+game.addEventListener('pointermove', e => {
+  if (!running) return;
+  const rect = game.getBoundingClientRect();
+  setBasketTarget(e.clientX - rect.left - BASKET_W / 2);
+});
+game.addEventListener('pointerdown', e => {
+  if (!running) return;
+  const rect = game.getBoundingClientRect();
+  setBasketTarget(e.clientX - rect.left - BASKET_W / 2);
+});
+
+// ---- SPAWN ----
+function spawnItem() {
+  if (!running) return;
+  const theme = levelThemes[currentLevelIndex];
+  const lvl = levels[currentLevelIndex];
+  
+  const itemKey = theme.pool[Math.floor(Math.random() * theme.pool.length)];
+  const itemData = itemMap[itemKey];
+
+  const el = document.createElement('div');
+  el.className = 'item';
+  if (itemData.isMosca || itemData.isBarata) el.classList.add('pest'); 
+  
+  if (itemData.customSvg) {
+    el.innerHTML = `<span>${itemData.customSvg}</span>`;
+  } else {
+    el.innerHTML = `<span>${itemData.emoji}</span>`;
+  }
+
+  const maxX = game.clientWidth - ITEM_SIZE;
+  const x = Math.random() * maxX;
+  el.style.left = x + 'px'; el.style.top = '-44px';
+  game.appendChild(el);
+
+  let baseSpeed = (140 + Math.random() * 80) * lvl.speedMult;
+  if (itemData.isMosca || itemData.isBarata) baseSpeed *= 1.15;
+  
+  items.push({ el, x, y: -44, speed: baseSpeed, data: itemData, key: itemKey });
+}
+
+function showPop(x, y, text, className) {
+  const p = document.createElement('div');
+  p.className = 'pop ' + className;
+  p.textContent = text;
+  p.style.left = x + 'px'; p.style.top = y + 'px';
+  game.appendChild(p);
+  setTimeout(() => p.remove(), 700);
+}
+
+// ---- LOOP ----
+function loop(t) {
+  if (!running) return;
+  const dt = Math.min((t - lastTime) / 1000, 0.05);
+  lastTime = t;
+
+  if (!isFrozen) {
+    actualBasketX += (targetBasketX - actualBasketX) * 0.3; // Movimento mais ágil
+    basket.style.left = actualBasketX + 'px';
+  }
+
+  const basketY = game.clientHeight - 68; 
+  const basketLeft = actualBasketX + 10;
+  const basketRight = actualBasketX + BASKET_W - 10;
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    it.y += it.speed * dt;
+    it.el.style.top = it.y + 'px';
+
+    const itemCenterX = it.x + ITEM_SIZE / 2;
+    const hitY = it.y + ITEM_SIZE >= basketY && it.y + ITEM_SIZE <= basketY + 40;
+
+    if (hitY && itemCenterX >= basketLeft && itemCenterX <= basketRight) {
+      // === COLISÃO ===
+      if (it.data.isBarata) {
+        playBeep(50, 'sawtooth', 1.0); 
+        speak("Barata! Você perdeu todo o progresso!");
+        document.body.classList.add('panic-mode');
+        game.classList.add('panic-mode');
+        showPop(it.x, it.y, 'PERDEU TUDO!', 'fatal');
+        
+        localStorage.removeItem('pasterryJourneyLvl');
+        currentLevelIndex = 0;
+        
+        setTimeout(() => {
+          document.body.classList.remove('panic-mode');
+          game.classList.remove('panic-mode');
+          gameOverBarata();
+        }, 1500);
+        return;
+      } 
+      else if (it.data.isMosca) {
+        score = Math.floor(score / 2);
+        scoreEl.textContent = score;
+        lives -= 1;
+        updateHearts();
+        
+        playBeep(300, 'square', 0.3);
+        showPop(it.x, it.y, `METADE DOS PONTOS!`, 'pest');
+        
+        if (lives <= 0) {
+          gameOver();
+          it.el.remove(); items.splice(i, 1);
+          return;
+        }
+      }
+      else if (it.data.isFreeze) {
+        isFrozen = true;
+        basket.classList.add('frozen');
+        showPop(it.x, it.y, 'CONGELOU!', 'freeze');
+        playBeep(200, 'square', 0.4);
+        setTimeout(() => {
+          isFrozen = false;
+          basket.classList.remove('frozen');
+        }, 1500); // Congela por 1.5s
+      } 
+      else if (it.data.isBad) {
+        lives += it.data.pts; 
+        if (lives < 0) lives = 0;
+        updateHearts();
+        playBeep(100, 'sawtooth', 0.3);
+        showPop(it.x, it.y, `${it.data.pts} ❤️`, 'bad');
+        
+        if (lives <= 0) {
+          gameOver();
+          it.el.remove(); items.splice(i, 1);
+          return;
+        }
+      } 
+      else {
+        score += it.data.pts;
+        scoreEl.textContent = score;
+        playBeep(800, 'sine', 0.05);
+        showPop(it.x, it.y, `+${it.data.pts}`, '');
+
+        let progress = (score / levels[currentLevelIndex].target) * 100;
+        progressBar.style.width = Math.min(100, progress) + '%';
+
+        if (score >= levels[currentLevelIndex].target) {
+          levelComplete();
+          it.el.remove(); items.splice(i, 1);
+          return;
+        }
+      }
+      it.el.remove(); items.splice(i, 1); continue;
+    }
+
+    if (it.y > game.clientHeight) {
+      it.el.remove(); items.splice(i, 1);
+    }
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+// ---- FLUXO DE JOGO ----
+function applyTheme() {
+  const theme = levelThemes[currentLevelIndex];
+  document.body.style.backgroundColor = theme.color;
+  game.style.backgroundColor = theme.bg;
+  
+  const isDark = theme.bg === '#212529' || theme.bg === '#2b2b2b';
+  document.documentElement.style.setProperty('--papel', isDark ? '#495057' : '#d4a373');
+  
+  levelTitle.textContent = theme.name;
+  levelTitle.style.color = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74, 14, 20, 0.05)';
+
+  if (theme.pool.includes('mosca') || theme.pool.includes('barata')) {
+    pestWarning.style.display = 'inline-block';
+  } else {
+    pestWarning.style.display = 'none';
+  }
+}
+
+function startLevel() {
+  initAudio();
+  const lvl = levels[currentLevelIndex];
+  
+  score = 0; timeLeft = LEVEL_TIME; lives = MAX_LIVES; running = true;
+  items.forEach(it => it.el.remove()); items = [];
+  
+  scoreEl.textContent = 0;
+  levelHud.textContent = `${lvl.level} / 30`;
+  targetHud.textContent = `${lvl.target} pts`;
+  progressBar.style.width = '0%';
+  updateHearts();
+  overlay.classList.add('hidden');
+  playerNameText.textContent = playerName || 'Jogador';
+  
+  applyTheme(); 
+  resetBasket();
+
+  clearInterval(spawnTimer); clearInterval(countdown);
+  
+  // Spawn mais rápido para encher a sacola
+  let spawnRate = Math.max(250, 600 - (currentLevelIndex * 10)); 
+  spawnTimer = setInterval(spawnItem, spawnRate);
+  
+  timeEl.textContent = formatTime(timeLeft);
+  countdown = setInterval(() => {
+    timeLeft--;
+    timeEl.textContent = formatTime(timeLeft);
+    if (timeLeft <= 0) gameOver();
+  }, 1000);
+
+  lastTime = performance.now();
+  rafId = requestAnimationFrame(loop);
+  spawnItem();
+}
+
+function levelComplete() {
+  running = false;
+  clearInterval(spawnTimer); clearInterval(countdown); cancelAnimationFrame(rafId);
+  
+  let nextLevel = currentLevelIndex + 1;
+  if (nextLevel < 30) {
+    localStorage.setItem('pasterryJourneyLvl', nextLevel);
+  } else {
+    localStorage.removeItem('pasterryJourneyLvl');
+  }
+
+  playBeep(600, 'sine', 0.1); setTimeout(() => playBeep(800, 'sine', 0.1), 100); setTimeout(() => playBeep(1000, 'sine', 0.2), 200);
+  speak(`Nível ${currentLevelIndex + 1} concluído, ${playerName}!`);
+
+  const nextTheme = nextLevel < 30 ? levelThemes[nextLevel].name : 'VITÓRIA';
+  
+  overlay.innerHTML = `
+    <h2>Nível ${currentLevelIndex + 1} Concluído!</h2>
+    <p>Mandou bem, <b>${playerName}</b>! Você bateu a meta com ${lives} vidas.</p>
+    <p style="font-size:0.8rem; color:#666;">Próximo tema: <b>${nextTheme}</b></p>
+    <p style="color:var(--verde); font-weight:800; font-size:1.1rem; margin-top:10px;">Progresso Salvo!</p>
+    <button class="btn" id="nextBtn">Continuar</button>
+  `;
+  overlay.classList.remove('hidden');
+  
+  currentLevelIndex = nextLevel;
+  
+  if (currentLevelIndex >= 30) {
+    overlay.innerHTML = `
+      <h2>🏆 VOCÊ É UMA LENDA, ${playerName}! 🏆</h2>
+      <p>Você jogou por 1 hora e meia, sobreviveu às pragas e concluiu os 30 níveis!</p>
+      <div style="background:var(--vermelho); color:#fff; padding:15px; border-radius:10px; font-weight:900; margin:10px 0;">
+        PRÊMIO MÁXIMO:<br>1 PASTEL GRÁTIS + 1 REFRI GRÁTIS!
+      </div>
+      <p style="font-size:0.8rem">Mostre esta tela no balcão para resgatar sua recompensa de Lenda.</p>
+      <button class="btn" id="nextBtn" style="background:var(--marrom)">Jogar do Início</button>
+    `;
+    currentLevelIndex = 0;
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', startLevel);
+}
+
+function gameOver() {
+  running = false;
+  clearInterval(spawnTimer); clearInterval(countdown); cancelAnimationFrame(rafId);
+  items.forEach(it => it.el.remove()); items = [];
+  
+  playBeep(150, 'sawtooth', 0.5);
+  speak(`Game over, ${playerName}. Tente novamente.`);
+
+  overlay.innerHTML = `
+    <h2>Game Over</h2>
+    <p>Suas vidas acabaram no Nível ${levels[currentLevelIndex].level} (${levelThemes[currentLevelIndex].name}), <b>${playerName}</b>.</p>
+    <p style="font-size:0.9rem; margin-top:5px;">Você precisa reiniciar este nível.</p>
+    <button class="btn" id="retryBtn">Tentar Nível Novamente</button>
+  `;
+  overlay.classList.remove('hidden');
+  document.getElementById('retryBtn').addEventListener('click', startLevel);
+}
+
+function gameOverBarata() {
+  overlay.innerHTML = `
+    <h2 style="color:var(--vermelho); font-size: 2rem; display:flex; align-items:center; justify-content:center; gap:10px;">${svgBarata} ECA! UMA BARATA! ${svgBarata}</h2>
+    <p>Você pegou uma barata no delivery e o cliente cancelou tudo, <b>${playerName}</b>!</p>
+    <p style="font-weight: 800; color: var(--vermelho); margin-top: 10px;">TODO O SEU PROGRESSO FOI PERDIDO.</p>
+    <p style="font-size:0.8rem; margin-top: 5px;">Você voltou para o Nível 1.</p>
+    <button class="btn" id="resetBarataBtn" style="background:var(--vermelho)">Começar do Zero</button>
+  `;
+  overlay.classList.remove('hidden');
+  document.getElementById('resetBarataBtn').addEventListener('click', () => {
+    currentLevelIndex = 0;
+    startLevel();
+  });
+}
+
+startBtn.addEventListener('click', () => {
+  let typedName = nameInput.value.trim();
+  if (!typedName) {
+    alert("Por favor, digite seu nome para começar!");
+    return;
+  }
+  playerName = typedName;
+  localStorage.setItem('pasterryPlayerName', playerName); 
+  
+  if (savedProgress === 0) {
+    currentLevelIndex = 0;
+    localStorage.removeItem('pasterryJourneyLvl');
+  }
+  startLevel();
+});
+
+resetBtn.addEventListener('click', () => {
+  localStorage.removeItem('pasterryJourneyLvl');
+  localStorage.removeItem('pasterryPlayerName');
+  alert('Progresso e nome apagados! O jogo voltará ao Nível 1.');
+  location.reload();
+});
+
+resetBasket();
+window.addEventListener('resize', () => { if (!running) resetBasket(); });
+</script>
+</body>
+</html>
