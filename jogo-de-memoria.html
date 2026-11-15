@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry Memory - Jogo da Memória</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 5px; color: var(--marrom); overflow: hidden;
+  }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: var(--marrom); padding: 5px 10px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 8px; }
+  .logo-container {
+    width: 30px; height: 30px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.5rem; color: var(--amarelo); margin-top: 3px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.7rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.55rem; font-weight: normal; color: #aaa;}
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 4px 10px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.8rem;
+    box-shadow: 0 3px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.55rem; color: #888; }
+  .hud-item strong { font-size: 0.9rem; color: var(--laranja); }
+
+  /* CONTAINER PRINCIPAL */
+  #game-container {
+    position: relative; background: #fff;
+    border: 3px solid var(--marrom); border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    overflow: hidden; 
+    width: 100%; 
+    max-width: 400px;
+    
+    /* Deixa o conteúdo ditar o tamanho, mas limita para não vazar a tela */
+    max-height: 80vh;
+    
+    display: flex; justify-content: center; align-items: center;
+    padding: 6px; /* Reduzido para ganhar espaço */
+  }
+
+  /* O SEGREDO PARA AS CARTAS SE ADAPTAREM */
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 4px; /* Espaço pequeno entre cartas */
+    width: 100%;
+    
+    /* Força a proporção do grid para 4x6 */
+    aspect-ratio: 4 / 6; 
+  }
+
+  .card {
+    position: relative;
+    aspect-ratio: 1 / 1; /* Mantém a carta quadrada */
+    width: 100%;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.4s;
+    border-radius: 6px;
+  }
+  
+  .card.flipped { transform: rotateY(180deg); }
+  .card.matched { pointer-events: none; opacity: 0.5; transform: scale(0.95); }
+
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    border: 2px solid var(--marrom);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .card-front {
+    background: #fff;
+    transform: rotateY(180deg);
+  }
+  
+  .card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-back {
+    background: var(--laranja);
+    background-image: radial-gradient(var(--amarelo) 2px, transparent 2px);
+    background-size: 6px 6px;
+  }
+  
+  .card-back::after {
+    content: '🥟';
+    font-size: 1rem;
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 15px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.85rem; line-height: 1.4; }
+  
+  .trophy { font-size: 2.5rem; animation: float 2s infinite alternate; margin-bottom: 5px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 8px 16px; font-size: 0.85rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+</style>
+</head>
+<body>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<div class="hud">
+  <div class="hud-item">
+    <span>MOVIMENTOS</span>
+    <strong id="hudMoves">0</strong>
+  </div>
+  <div class="hud-item">
+    <span>TEMPO</span>
+    <strong id="hudTime">00:00</strong>
+  </div>
+  <div class="hud-item">
+    <span>PARES</span>
+    <strong id="hudPairs">0 / 12</strong>
+  </div>
+</div>
+
+<div id="game-container">
+  <div class="memory-grid" id="memoryGrid"></div>
+  
+  <div class="overlay" id="overlay">
+    <div class="trophy" id="overlayIcon">🧠</div>
+    <h2 id="overlayTitle">Pasterry Memory</h2>
+    <p id="overlayText">Encontre os pares dos recheios mais deliciosos!</p>
+    
+    <button class="btn" id="startBtn">Jogar</button>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO E IMAGENS
+// ==========================================
+const hudMoves = document.getElementById('hudMoves');
+const hudTime = document.getElementById('hudTime');
+const hudPairs = document.getElementById('hudPairs');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const startBtn = document.getElementById('startBtn');
+const memoryGrid = document.getElementById('memoryGrid');
+
+let playerName = localStorage.getItem('pasterryBubbleName') || 'ANÔNIMO';
+document.getElementById('playerTagName').textContent = playerName;
+
+// ==========================================
+// LISTA COMPLETA DE IMAGENS
+// ==========================================
+const ALL_IMAGES = [
+  'barra-chocolate.png', 'bauru1.png', 'bauru2.png', 'bauru3.png', 'bauru4.png', 'bauru5.png',
+  'beef1.png', 'beef2.png', 'beef3.png', 'beef4.png', 'beef5.png', 'beef6.png', 'beef7.png', 'beef8.png',
+  'beijinho-coco.png', 'bis1-chocolate-leite-bis-branco.png', 'bis2-chocolate-branco-bis-preto.png', 'bis3-beijinho-bis-preto.png',
+  'brocolis1.png', 'brocolis2.png', 'brocolis3.png', 'brocolis4.png', 'brocolis5.png', 'brocolis6.png', 'brocolis7.png', 'brocolis8.png',
+  'c1.png', 'caipira1.png', 'caipira2.png', 'caipira3.png',
+  'chicken1.png', 'chicken2.png', 'chicken3.png', 'chicken4.png', 'chicken6.png', 'chicken7.png',
+  'choco1-socomolate-ao-leite.png', 'choco2-chocolate-ao-leite-banana.png', 'choco3-sonho-de-valsa.png', 'choco5-socomolate-branco.png', 'choco6-branco-sonho-de-valsa.png', 'choco7-branco-sonho-de-valsa.png',
+  'creme-avela-banana-buello.png', 'creme-avela-coco-buello.png',
+  'cruzeiro1.png', 'cruzeiro2.png', 'cruzeiro3.png', 'cruzeiro4.png',
+  'doce-de-leite-mussarela-banana.png', 'dois-amores.png', 'embarque1.png', 'embarque2.png', 'embarque3.png',
+  'gaucho1.png', 'gaucho2.png', 'gaucho3.png', 'gaucho4.png', 'gaucho5.png', 'gaucho6.png', 'gaucho7.png', 'gaucho8.png',
+  'hotdog.png',
+  'italian1.png', 'italian2.png', 'italian3.png', 'italian4.png', 'italian5.png', 'italian6.png', 'italian7.png', 'italian8.png',
+  'lampiao1.png', 'lampiao2.png', 'lampiao3.png', 'lampiao4.png', 'lampiao5.png', 'lampiao6.png', 'lampiao7.png', 'lampiao8.png',
+  'lasanha.png', 'logo.jpg',
+  'lombo1.png', 'lombo2.png', 'lombo3.png', 'lombo4.png', 'lombo5.png',
+  'louca1.png', 'louca2.png', 'louca3.png', 'louca4.png', 'louca5.png', 'louca6.png', 'louca7.png', 'louca8.png',
+  'madre1-doce-de-leite-banana.png', 'madre2-doce-de-leite-pacoca.png', 'madre3-doce-de-leite-coco.png', 'madre4-doce-de-leite-banana-acoca.png',
+  'metro1.png', 'metro2.png', 'mexicana.png',
+  'mineiro1.png', 'mineiro2.png', 'mineiro3.png', 'mineiro4.png', 'mineiro5.png', 'mineiro6.png',
+  'misto1.png', 'misto2.png', 'misto3.png', 'misto4.png', 'misto5.png',
+  'ninho1-so-leite-ninho.png', 'ninho2-ninho-banana.png', 'nutella-banana.png', 'nutella-coco.png',
+  'pizza1.png', 'pizza2.png', 'pizza3.png', 'pizza4.png', 'pizza5.png',
+  'portug1.png', 'portug2.png', 'portug3.png', 'prestigio.png',
+  'pupunha1.png', 'pupunha2.png', 'pupunha4.png', 'pupunha5.png', 'pupunha6.png', 'pupunha-esp.png',
+  'pure1.png', 'pure2.png', 'pure3.png', 'pure4.png', 'pure5.png',
+  'romeu-e-julieta.png', 'salgado-bolinha.png', 'salgado-coxinha.png', 'salgado-risole.png',
+  'so-creme-avela-nutella.png', 'so-doce-de-leite.png', 'toscana2.png'
+];
+
+const TOTAL_PAIRS = 12; // 12 pares = 24 cartas
+
+let cards = [];
+let flippedCards = [];
+let matchedPairs = 0;
+let moves = 0;
+let timeSeconds = 0;
+let timerInterval = null;
+let isLocked = false;
+let isGameOver = false;
+let isReadyToPlay = false;
+
+// ==========================================
+// VALIDAÇÃO DE IMAGENS
+// ==========================================
+function validateImages() {
+  return new Promise((resolve) => {
+    let loadedCount = 0;
+    let errors = [];
+    
+    if (ALL_IMAGES.length === 0) {
+      resolve({ success: true });
+      return;
+    }
+
+    ALL_IMAGES.forEach(imgName => {
+      const img = new Image();
+      img.src = 'img/' + imgName;
+      
+      img.onload = () => {
+        loadedCount++;
+        if (loadedCount === ALL_IMAGES.length) {
+          resolve({ success: true });
+        }
+      };
+      
+      img.onerror = () => {
+        loadedCount++;
+        errors.push(imgName);
+        if (loadedCount === ALL_IMAGES.length) {
+          resolve({ success: false, errors: errors });
+        }
+      };
+    });
+  });
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function initGame() {
+  memoryGrid.innerHTML = '';
+  cards = [];
+  flippedCards = [];
+  matchedPairs = 0;
+  moves = 0;
+  timeSeconds = 0;
+  isLocked = false;
+  isGameOver = false;
+  
+  hudMoves.textContent = moves;
+  hudTime.textContent = '00:00';
+  hudPairs.textContent = `0 / ${TOTAL_PAIRS}`;
+  
+  overlay.classList.add('hidden');
+  
+  let shuffledList = [...ALL_IMAGES].sort(() => Math.random() - 0.5);
+  let selectedImages = shuffledList.slice(0, TOTAL_PAIRS);
+  
+  let deck = [];
+  selectedImages.forEach((imgName, index) => {
+    const item = { id: index, src: 'img/' + imgName };
+    deck.push({ ...item });
+    deck.push({ ...item });
+  });
+  
+  deck.sort(() => Math.random() - 0.5);
+  
+  deck.forEach((item, index) => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.dataset.pairId = item.id;
+    
+    card.innerHTML = `
+      <div class="card-front">
+        <img src="${item.src}" alt="Recheio">
+      </div>
+      <div class="card-back"></div>
+    `;
+    
+    card.addEventListener('click', () => flipCard(card));
+    memoryGrid.appendChild(card);
+    cards.push(card);
+  });
+  
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!isGameOver) {
+      timeSeconds++;
+      updateTimeDisplay();
+    }
+  }, 1000);
+}
+
+function flipCard(card) {
+  if (isLocked || isGameOver) return;
+  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  
+  card.classList.add('flipped');
+  flippedCards.push(card);
+  playBeep(600, 'sine', 0.05);
+  
+  if (flippedCards.length === 2) {
+    moves++;
+    hudMoves.textContent = moves;
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  isLocked = true;
+  const [card1, card2] = flippedCards;
+  
+  if (card1.dataset.pairId === card2.dataset.pairId) {
+    setTimeout(() => {
+      card1.classList.add('matched');
+      card2.classList.add('matched');
+      matchedPairs++;
+      hudPairs.textContent = `${matchedPairs} / ${TOTAL_PAIRS}`;
+      
+      playBeep(1000, 'sine', 0.1);
+      setTimeout(() => playBeep(1200, 'sine', 0.1), 100);
+      
+      flippedCards = [];
+      isLocked = false;
+      
+      if (matchedPairs === TOTAL_PAIRS) {
+        winGame();
+      }
+    }, 500);
+  } else {
+    playBeep(300, 'sawtooth', 0.1);
+    setTimeout(() => {
+      card1.classList.remove('flipped');
+      card2.classList.remove('flipped');
+      flippedCards = [];
+      isLocked = false;
+    }, 800);
+  }
+}
+
+function updateTimeDisplay() {
+  const m = Math.floor(timeSeconds / 60).toString().padStart(2, '0');
+  const s = (timeSeconds % 60).toString().padStart(2, '0');
+  hudTime.textContent = `${m}:${s}`;
+}
+
+function winGame() {
+  isGameOver = true;
+  clearInterval(timerInterval);
+  
+  playBeep(800, 'sine', 0.1);
+  setTimeout(() => playBeep(1000, 'sine', 0.1), 100);
+  setTimeout(() => playBeep(1200, 'sine', 0.1), 200);
+  setTimeout(() => playBeep(1600, 'sine', 0.3), 300);
+  
+  overlayIcon.textContent = "🏆";
+  overlayTitle.textContent = "Parabéns!";
+  
+  let timeStr = `${Math.floor(timeSeconds / 60).toString().padStart(2, '0')}:${(timeSeconds % 60).toString().padStart(2, '0')}`;
+  overlayText.innerHTML = `Você encontrou todos os pares em <b>${moves}</b> movimentos e <b>${timeStr}</b>!`;
+  
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+// ==========================================
+// BOTÕES E INICIALIZAÇÃO
+// ==========================================
+startBtn.onclick = () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  initGame();
+};
+
+overlay.classList.remove('hidden');
+
+validateImages().then(result => {
+  if (result.success) {
+    isReadyToPlay = true;
+    startBtn.disabled = false;
+    startBtn.style.opacity = '1';
+    startBtn.textContent = "Jogar";
+  } else {
+    isReadyToPlay = false;
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.5';
+    startBtn.textContent = "Erro nas Imagens";
+    
+    overlayIcon.textContent = "⚠️";
+    overlayTitle.textContent = "Imagens Faltando";
+    overlayText.innerHTML = `Não foi possível iniciar o jogo.<br>Verifique se estes arquivos existem na pasta <b>img/</b>:<br><br><span style="color:red; font-weight:bold; font-size:0.75rem;">${result.errors.join('<br>')}</span>`;
+  }
+});
+</script>
+</body>
+</html>
