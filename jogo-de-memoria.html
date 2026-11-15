@@ -66,12 +66,9 @@
     overflow: hidden; 
     width: 100%; 
     max-width: 400px;
-    
-    /* Deixa o conteúdo ditar o tamanho, mas limita para não vazar a tela */
     max-height: 80vh;
-    
     display: flex; justify-content: center; align-items: center;
-    padding: 6px; /* Reduzido para ganhar espaço */
+    padding: 6px;
   }
 
   /* O SEGREDO PARA AS CARTAS SE ADAPTAREM */
@@ -79,16 +76,14 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    gap: 4px; /* Espaço pequeno entre cartas */
+    gap: 4px;
     width: 100%;
-    
-    /* Força a proporção do grid para 4x6 */
     aspect-ratio: 4 / 6; 
   }
 
   .card {
     position: relative;
-    aspect-ratio: 1 / 1; /* Mantém a carta quadrada */
+    aspect-ratio: 1 / 1;
     width: 100%;
     cursor: pointer;
     transform-style: preserve-3d;
@@ -115,6 +110,13 @@
   .card-front {
     background: #fff;
     transform: rotateY(180deg);
+    /* Estilo para quando a imagem falhar */
+    font-size: 0.5rem;
+    text-align: center;
+    padding: 2px;
+    word-break: break-all;
+    line-height: 1.1;
+    color: #666;
   }
   
   .card-front img {
@@ -264,41 +266,6 @@ let isGameOver = false;
 let isReadyToPlay = false;
 
 // ==========================================
-// VALIDAÇÃO DE IMAGENS
-// ==========================================
-function validateImages() {
-  return new Promise((resolve) => {
-    let loadedCount = 0;
-    let errors = [];
-    
-    if (ALL_IMAGES.length === 0) {
-      resolve({ success: true });
-      return;
-    }
-
-    ALL_IMAGES.forEach(imgName => {
-      const img = new Image();
-      img.src = 'img/' + imgName;
-      
-      img.onload = () => {
-        loadedCount++;
-        if (loadedCount === ALL_IMAGES.length) {
-          resolve({ success: true });
-        }
-      };
-      
-      img.onerror = () => {
-        loadedCount++;
-        errors.push(imgName);
-        if (loadedCount === ALL_IMAGES.length) {
-          resolve({ success: false, errors: errors });
-        }
-      };
-    });
-  });
-}
-
-// ==========================================
 // LÓGICA DO JOGO
 // ==========================================
 function initGame() {
@@ -322,7 +289,7 @@ function initGame() {
   
   let deck = [];
   selectedImages.forEach((imgName, index) => {
-    const item = { id: index, src: 'img/' + imgName };
+    const item = { id: index, src: 'img/' + imgName, name: imgName };
     deck.push({ ...item });
     deck.push({ ...item });
   });
@@ -334,9 +301,11 @@ function initGame() {
     card.classList.add('card');
     card.dataset.pairId = item.id;
     
+    // AQUI ESTÁ A MÁGICA: Se a imagem falhar, o onerror substitui pelo nome do arquivo
     card.innerHTML = `
       <div class="card-front">
-        <img src="${item.src}" alt="Recheio">
+        <img src="${item.src}" alt="Recheio" 
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'font-size:0.6rem; padding:2px; text-align:center; color:#c92a2a; font-weight:bold;\\'>${item.name}</div>';">
       </div>
       <div class="card-back"></div>
     `;
@@ -457,25 +426,13 @@ startBtn.onclick = () => {
   initGame();
 };
 
+// Remove a necessidade de esperar o carregamento de TODAS as imagens.
+// O jogo inicia imediatamente. O erro na imagem é tratado carta a carta.
+startBtn.disabled = false;
+startBtn.style.opacity = '1';
+startBtn.textContent = "Jogar";
 overlay.classList.remove('hidden');
 
-validateImages().then(result => {
-  if (result.success) {
-    isReadyToPlay = true;
-    startBtn.disabled = false;
-    startBtn.style.opacity = '1';
-    startBtn.textContent = "Jogar";
-  } else {
-    isReadyToPlay = false;
-    startBtn.disabled = true;
-    startBtn.style.opacity = '0.5';
-    startBtn.textContent = "Erro nas Imagens";
-    
-    overlayIcon.textContent = "⚠️";
-    overlayTitle.textContent = "Imagens Faltando";
-    overlayText.innerHTML = `Não foi possível iniciar o jogo.<br>Verifique se estes arquivos existem na pasta <b>img/</b>:<br><br><span style="color:red; font-weight:bold; font-size:0.75rem;">${result.errors.join('<br>')}</span>`;
-  }
-});
 </script>
 </body>
 </html>
