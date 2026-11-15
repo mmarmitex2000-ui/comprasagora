@@ -125,7 +125,7 @@
     </div>
     <div class="brand-name">Pasterry</div>
   </div>
-  <div class="player-tag" id="playerTag">
+  <div class="player-tag" id="playerTag" style="display:none;">
     <span>JOGADOR</span>
     <div id="playerTagName">-</div>
   </div>
@@ -145,7 +145,7 @@
     <div class="game-desc">Estoure as bolhas</div>
   </a>
 
-  <!-- Jogo 2: Pasterry Memory -->
+  <!-- Jogo 2: Pasterry Memory (Jogo da Memória) -->
   <a href="jogo-de-memoria.html" class="game-card card-memoria">
     <div class="game-icon">🧠</div>
     <div class="game-title">Jogo da Memória</div>
@@ -166,14 +166,14 @@
     <div class="game-desc">Adivinhe a palavra</div>
   </a>
 
-  <!-- Jogo 5: Pasterry Snake -->
-  <a href="snake.html" class="game-card card-snake">
+  <!-- Jogo 5: Pasterry Snake (O arquivo se chama skack.html) -->
+  <a href="skack.html" class="game-card card-snake">
     <div class="game-icon">🐍</div>
     <div class="game-title">Pasterry Snake</div>
     <div class="game-desc">A cobrinha do pastel</div>
   </a>
 
-  <!-- Jogo 6: Pegue o Pastel (se você tiver salvo com outro nome, altere o href abaixo) -->
+  <!-- Jogo 6: Pegue o Pastel -->
   <a href="jogo-pegue-o-pastel.html" class="game-card card-pastel">
     <div class="game-icon">🍽️</div>
     <div class="game-title">Pegue o Pastel</div>
@@ -201,7 +201,6 @@
     playerTagName.textContent = savedName;
     playerTag.style.display = 'flex';
   } else {
-    // Se não tiver nome, esconde a tag de jogador
     playerTag.style.display = 'none';
   }
 </script>
