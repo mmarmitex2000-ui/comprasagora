@@ -25,9 +25,20 @@
     padding: 10px; color: var(--marrom); overflow: hidden;
   }
 
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
   .header-top {
     display: flex; justify-content: space-between; align-items: center;
-    width: 100%; max-width: 400px; margin-bottom: 10px;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px; /* Margem para não sobrepor o botão */
     background: var(--marrom); padding: 5px 15px; border-radius: 15px;
     border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     z-index: 10;
@@ -123,6 +134,9 @@
 </style>
 </head>
 <body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
 
 <div class="header-top">
   <div class="logo-area">
@@ -313,7 +327,6 @@ function createInitialGrid() {
 function gameLoop(now) {
   if (isGameOver) return;
   
-  // Delta Time em segundos, limitado a 0.1 para evitar saltos ao trocar de aba
   const dt = Math.min((now - lastTime) / 1000, 0.1); 
   lastTime = now;
   
@@ -324,12 +337,10 @@ function gameLoop(now) {
 }
 
 function update(dt) {
-  // Atualiza a bolha que está voando
   if (shootingBubble) {
-    const speed = 1800; // Pixels por segundo (Muito rápido e suave)
+    const speed = 1800; 
     let moveDist = speed * dt;
     
-    // Raycast contínuo para não atravessar paredes ou bolhas
     const steps = Math.ceil(moveDist / (radius * 0.5));
     const stepX = (shootingBubble.vx * moveDist) / steps;
     const stepY = (shootingBubble.vy * moveDist) / steps;
@@ -338,14 +349,12 @@ function update(dt) {
       shootingBubble.x += stepX;
       shootingBubble.y += stepY;
       
-      // 1. Colisão com Teto
       if (shootingBubble.y - radius <= 0) {
         shootingBubble.y = radius;
         resolveCollision(shootingBubble);
         return;
       }
       
-      // 2. Colisão com Paredes
       if (shootingBubble.x - radius < 0) {
         shootingBubble.x = radius;
         shootingBubble.vx *= -1;
@@ -357,12 +366,10 @@ function update(dt) {
         return;
       }
       
-      // 3. Colisão com Outras Bolhas
       let hit = false;
       for (let b of bubbles) {
         let dx = shootingBubble.x - b.x;
         let dy = shootingBubble.y - b.y;
-        // Colisão circular com margem de segurança
         if (dx * dx + dy * dy < (radius * 2 - 1) * (radius * 2 - 1)) {
           hit = true;
           break;
@@ -370,7 +377,6 @@ function update(dt) {
       }
       
       if (hit) {
-        // Recua para não sobrepor
         shootingBubble.x -= stepX;
         shootingBubble.y -= stepY;
         resolveCollision(shootingBubble);
@@ -386,7 +392,6 @@ function update(dt) {
 function resolveCollision(hitBubble) {
   if (!hitBubble) return;
 
-  // Encontra a linha e coluna mais próxima na grade hexagonal
   const rowHeight = radius * ROW_HEIGHT_MULT;
   
   let estRow = Math.round((hitBubble.y - radius) / rowHeight);
@@ -395,7 +400,6 @@ function resolveCollision(hitBubble) {
   let offset = (estRow % 2 !== 0) ? radius : 0;
   let estCol = Math.round((hitBubble.x - radius - offset) / (radius * 2));
   
-  // Limita para não sair da tela
   if (estCol < 0) estCol = 0;
   if (estCol >= COLS) estCol = COLS - 1;
   if (estRow % 2 !== 0 && estCol === COLS - 1) estCol = COLS - 2;
@@ -410,7 +414,7 @@ function resolveCollision(hitBubble) {
     color: hitBubble.color
   });
   
-  shootingBubble = null; // Libera o canhão
+  shootingBubble = null; 
   playBeep(500, 'sine', 0.05);
   
   checkMatches(bubbles.length - 1);
@@ -518,12 +522,10 @@ function startDropTimer() {
   dropTimer = setInterval(() => {
     if (isGameOver) return;
     
-    // Empurra todas as bolhas para baixo
     for (let b of bubbles) {
       b.y += radius * ROW_HEIGHT_MULT;
     }
     
-    // Cria nova linha no topo
     let topY = bubbles.length > 0 ? Math.min(...bubbles.map(b => b.y)) : radius;
     let rowIndex = Math.round((topY - radius) / (radius * ROW_HEIGHT_MULT));
     let offset = (rowIndex % 2 !== 0) ? radius : 0;
@@ -543,7 +545,7 @@ function startDropTimer() {
     }
     
     playBeep(200, 'sawtooth', 0.1);
-  }, 3500); // Desce a cada 3.5 segundos
+  }, 3500);
 }
 
 // ==========================================
@@ -580,7 +582,6 @@ function handlePointerDown(e) {
 function draw() {
   ctx.clearRect(0, 0, gameWidth, gameHeight);
   
-  // Linha de perigo
   ctx.beginPath();
   ctx.moveTo(0, warningLineY);
   ctx.lineTo(gameWidth, warningLineY);
@@ -590,7 +591,6 @@ function draw() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Bolhas na tela
   for (let b of bubbles) {
     drawBubble(b.x, b.y, b.r, b.color);
     if (b.y + b.r >= warningLineY && !isGameOver) {
@@ -598,7 +598,6 @@ function draw() {
     }
   }
   
-  // Bolha voando ou próxima no canhão
   if (shootingBubble) {
     drawBubble(shootingBubble.x, shootingBubble.y, shootingBubble.r, shootingBubble.color);
   } else {
@@ -617,7 +616,6 @@ function drawBubble(x, y, r, emoji) {
   ctx.lineWidth = 2;
   ctx.stroke();
   
-  // Brilho
   ctx.beginPath();
   ctx.arc(x - r*0.3, y - r*0.3, r*0.4, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.4)';
@@ -653,7 +651,6 @@ function drawCannon() {
   
   ctx.restore();
   
-  // Linha de mira
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(cx + Math.cos(cannonAngle) * 200, cy + Math.sin(cannonAngle) * 200);

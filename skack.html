@@ -25,9 +25,20 @@
     padding: 10px; color: var(--marrom); overflow: hidden;
   }
 
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
   .header-top {
     display: flex; justify-content: space-between; align-items: center;
-    width: 100%; max-width: 400px; margin-bottom: 10px;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
     background: var(--marrom); padding: 5px 15px; border-radius: 15px;
     border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     z-index: 10;
@@ -90,12 +101,11 @@
   }
   .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
 
-  /* CAIXA DE RANKING COM SCROLL */
   .ranking-box {
     background: #fff8e1; border: 2px solid var(--laranja);
     border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
-    max-height: 200px; /* Limita a altura */
-    overflow-y: auto; /* Adiciona scroll se passar do limite */
+    max-height: 200px;
+    overflow-y: auto;
   }
   .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; position: sticky; top: 0; background: #fff8e1; padding-bottom: 4px;}
   .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
@@ -108,6 +118,9 @@
 </style>
 </head>
 <body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
 
 <div class="header-top">
   <div class="logo-area">
@@ -182,7 +195,6 @@ document.getElementById('playerTagName').textContent = playerName;
 let highScore = parseInt(localStorage.getItem('pasterrySnakeHighScore') || '0', 10);
 hudHighScore.textContent = highScore;
 
-// Salva os top 15
 let rankings = JSON.parse(localStorage.getItem('pasterrySnakeRankings') || '[]');
 
 // ==========================================
@@ -581,16 +593,13 @@ function gameOver() {
     hudHighScore.textContent = highScore;
   }
   
-  // Adiciona ao ranking
   rankings.push({ name: playerName, score: score });
   rankings.sort((a, b) => b.score - a.score);
-  rankings = rankings.slice(0, 15); // Mantém os Top 15
+  rankings = rankings.slice(0, 15);
   localStorage.setItem('pasterrySnakeRankings', JSON.stringify(rankings));
   
-  // Renderiza o Top 15 com destaque para o jogador atual
   rankingList.innerHTML = rankings.map((r, i) => {
     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
-    // Se for o jogador atual (e estiver no top 15), destaca
     const isCurrent = r.name === playerName && r.score === score;
     return `<div class="rank-line ${isCurrent ? 'current-player' : ''}"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
   }).join('');
@@ -635,11 +644,11 @@ function playBeep(freq, type, duration) {
 // ==========================================
 // BOTÕES E INICIALIZAÇÃO
 // ==========================================
-startBtn.addEventListener('click', () => {
+startBtn.onclick = () => {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   setupCanvas();
   resetGame();
-});
+};
 
 setupCanvas();
 draw();

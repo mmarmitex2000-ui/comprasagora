@@ -25,9 +25,20 @@
     padding: 5px; color: var(--marrom); overflow: hidden;
   }
 
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
   .header-top {
     display: flex; justify-content: space-between; align-items: center;
-    width: 100%; max-width: 400px; margin-bottom: 5px;
+    width: 100%; max-width: 400px; margin-bottom: 5px; margin-top: 40px; /* Margem para o botão */
     background: var(--marrom); padding: 5px 10px; border-radius: 15px;
     border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     z-index: 10;
@@ -160,6 +171,9 @@
 </head>
 <body>
 
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
+
 <div class="header-top">
   <div class="logo-area">
     <div class="logo-container">
@@ -218,7 +232,7 @@ let playerName = localStorage.getItem('pasterryBubbleName') || 'ANÔNIMO';
 document.getElementById('playerTagName').textContent = playerName;
 
 // ==========================================
-// LISTA COMPLETA DE IMAGENS (ATUALIZADA COM OS NOMES EXATOS DA SUA LISTA)
+// LISTA COMPLETA DE IMAGENS
 // ==========================================
 const ALL_IMAGES = [
   'barra-chocolate.png', 'bauru1.png', 'bauru2.png', 'bauru3.png', 'bauru4.png', 'bauru5.png',
