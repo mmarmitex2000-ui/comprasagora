@@ -58,7 +58,6 @@
   .hud-item span { font-size: 0.55rem; color: #888; }
   .hud-item strong { font-size: 0.9rem; color: var(--laranja); }
 
-  /* CONTAINER PRINCIPAL */
   #game-container {
     position: relative; background: #fff;
     border: 3px solid var(--marrom); border-radius: 12px;
@@ -66,29 +65,23 @@
     overflow: hidden; 
     width: 100%; 
     max-width: 400px;
-    
-    /* Deixa o conteúdo ditar o tamanho, mas limita para não vazar a tela */
     max-height: 80vh;
-    
     display: flex; justify-content: center; align-items: center;
-    padding: 6px; /* Reduzido para ganhar espaço */
+    padding: 6px;
   }
 
-  /* O SEGREDO PARA AS CARTAS SE ADAPTAREM */
   .memory-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    gap: 4px; /* Espaço pequeno entre cartas */
+    gap: 4px;
     width: 100%;
-    
-    /* Força a proporção do grid para 4x6 */
     aspect-ratio: 4 / 6; 
   }
 
   .card {
     position: relative;
-    aspect-ratio: 1 / 1; /* Mantém a carta quadrada */
+    aspect-ratio: 1 / 1;
     width: 100%;
     cursor: pointer;
     transform-style: preserve-3d;
@@ -115,6 +108,13 @@
   .card-front {
     background: #fff;
     transform: rotateY(180deg);
+    font-size: 0.5rem;
+    text-align: center;
+    padding: 2px;
+    word-break: break-all;
+    line-height: 1.1;
+    color: #c92a2a;
+    font-weight: bold;
   }
   
   .card-front img {
@@ -261,42 +261,6 @@ let timeSeconds = 0;
 let timerInterval = null;
 let isLocked = false;
 let isGameOver = false;
-let isReadyToPlay = false;
-
-// ==========================================
-// VALIDAÇÃO DE IMAGENS
-// ==========================================
-function validateImages() {
-  return new Promise((resolve) => {
-    let loadedCount = 0;
-    let errors = [];
-    
-    if (ALL_IMAGES.length === 0) {
-      resolve({ success: true });
-      return;
-    }
-
-    ALL_IMAGES.forEach(imgName => {
-      const img = new Image();
-      img.src = 'img/' + imgName;
-      
-      img.onload = () => {
-        loadedCount++;
-        if (loadedCount === ALL_IMAGES.length) {
-          resolve({ success: true });
-        }
-      };
-      
-      img.onerror = () => {
-        loadedCount++;
-        errors.push(imgName);
-        if (loadedCount === ALL_IMAGES.length) {
-          resolve({ success: false, errors: errors });
-        }
-      };
-    });
-  });
-}
 
 // ==========================================
 // LÓGICA DO JOGO
@@ -308,7 +272,7 @@ function initGame() {
   matchedPairs = 0;
   moves = 0;
   timeSeconds = 0;
-  isLocked = false;
+  isLocked = true; // Bloqueia os cliques enquanto mostra as cartas
   isGameOver = false;
   
   hudMoves.textContent = moves;
@@ -322,13 +286,15 @@ function initGame() {
   
   let deck = [];
   selectedImages.forEach((imgName, index) => {
-    const item = { id: index, src: 'img/' + imgName };
+    const item = { id: index, src: 'img/' + imgName, name: imgName };
     deck.push({ ...item });
     deck.push({ ...item });
   });
   
+  // Mistura o baralho
   deck.sort(() => Math.random() - 0.5);
   
+  // Cria as cartas na tela
   deck.forEach((item, index) => {
     const card = document.createElement('div');
     card.classList.add('card');
@@ -336,7 +302,8 @@ function initGame() {
     
     card.innerHTML = `
       <div class="card-front">
-        <img src="${item.src}" alt="Recheio">
+        <img src="${item.src}" alt="Recheio" 
+             onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'font-size:0.6rem; padding:2px; text-align:center; color:#c92a2a; font-weight:bold;\\'>${item.name}</div>';">
       </div>
       <div class="card-back"></div>
     `;
@@ -345,14 +312,27 @@ function initGame() {
     memoryGrid.appendChild(card);
     cards.push(card);
   });
-  
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (!isGameOver) {
-      timeSeconds++;
-      updateTimeDisplay();
-    }
-  }, 1000);
+
+  // MOSTRAR TODAS AS CARTAS POR 3 SEGUNDOS
+  // Usamos um pequeno timeout para garantir que o navegador renderizou as cartas antes de virar
+  setTimeout(() => {
+    cards.forEach(c => c.classList.add('flipped'));
+  }, 100);
+
+  // Depois de 3 segundos, esconde todas e começa o jogo
+  setTimeout(() => {
+    cards.forEach(c => c.classList.remove('flipped'));
+    isLocked = false; // Libera os cliques
+    
+    // Inicia o timer SÓ AGORA, depois que as cartas estão escondidas
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!isGameOver) {
+        timeSeconds++;
+        updateTimeDisplay();
+      }
+    }, 1000);
+  }, 3100); // 3 segundos + 100ms de margem
 }
 
 function flipCard(card) {
@@ -457,25 +437,11 @@ startBtn.onclick = () => {
   initGame();
 };
 
+startBtn.disabled = false;
+startBtn.style.opacity = '1';
+startBtn.textContent = "Jogar";
 overlay.classList.remove('hidden');
 
-validateImages().then(result => {
-  if (result.success) {
-    isReadyToPlay = true;
-    startBtn.disabled = false;
-    startBtn.style.opacity = '1';
-    startBtn.textContent = "Jogar";
-  } else {
-    isReadyToPlay = false;
-    startBtn.disabled = true;
-    startBtn.style.opacity = '0.5';
-    startBtn.textContent = "Erro nas Imagens";
-    
-    overlayIcon.textContent = "⚠️";
-    overlayTitle.textContent = "Imagens Faltando";
-    overlayText.innerHTML = `Não foi possível iniciar o jogo.<br>Verifique se estes arquivos existem na pasta <b>img/</b>:<br><br><span style="color:red; font-weight:bold; font-size:0.75rem;">${result.errors.join('<br>')}</span>`;
-  }
-});
 </script>
 </body>
 </html>
