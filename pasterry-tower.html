@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry Tower - Torre de Pastéis</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* TELAS */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px; height: 65vh;
+    touch-action: none; display: flex; justify-content: center;
+  }
+  canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+
+  .controls-hint {
+    margin-top: 15px; font-size: 0.8rem; color: #888; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry Tower!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Digite seu nome e empilhe os pastéis o mais alto possível.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>ALTURA</span>
+      <strong id="hudScore">0</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">0</strong>
+    </div>
+  </div>
+
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="overlay" id="overlay">
+      <div class="trophy" id="overlayIcon">🏗️</div>
+      <h2 id="overlayTitle">Pasterry Tower</h2>
+      <p id="overlayText">Toque na tela para soltar o pastel!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Construtores</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Toque na tela ou aperte <b>Espaço</b> para soltar o pastel.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO INICIAL
+// ==========================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const hudScore = document.getElementById('hudScore');
+const hudHighScore = document.getElementById('hudHighScore');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const rankingBox = document.getElementById('rankingBox');
+const rankingList = document.getElementById('rankingList');
+const startBtn = document.getElementById('startBtn');
+
+// Telas
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+
+let playerName = localStorage.getItem('pasterryTowerName') || '';
+let highScore = parseInt(localStorage.getItem('pasterryTowerHighScore') || '0', 10);
+hudHighScore.textContent = highScore;
+
+let rankings = JSON.parse(localStorage.getItem('pasterryTowerRankings') || '[]');
+
+// ==========================================
+// ESTADO DO JOGO
+// ==========================================
+let gameWidth = 0;
+let gameHeight = 0;
+let score = 0;
+let isGameOver = false;
+let animationId = null;
+let lastTime = 0;
+
+// Entidades
+let blocks = []; // Blocos já empilhados
+let currentBlock = null; // Bloco que está balançando
+let cameraY = 0;
+let blockHeight = 30;
+const BASE_WIDTH = 150;
+
+// Configuração dos Blocos (Pastéis)
+const BLOCK_TYPES = [
+  { emoji: '🥟', color: '#f5c542' },
+  { emoji: '🥩', color: '#e03131' },
+  { emoji: '🧀', color: '#fcc419' },
+  { emoji: '🍕', color: '#e8590c' }
+];
+
+// ==========================================
+// INICIALIZAÇÃO DO CANVAS
+// ==========================================
+function setupCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  
+  gameWidth = rect.width;
+  gameHeight = rect.height;
+  
+  canvas.width = gameWidth * dpr;
+  canvas.height = gameHeight * dpr;
+  canvas.style.width = gameWidth + 'px';
+  canvas.style.height = gameHeight + 'px';
+  ctx.scale(dpr, dpr);
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function resetGame() {
+  score = 0;
+  isGameOver = false;
+  cameraY = 0;
+  blocks = [];
+  currentBlock = null;
+  
+  hudScore.textContent = score;
+  overlay.classList.add('hidden');
+  
+  // Cria o primeiro bloco na base
+  blocks.push({
+    x: gameWidth / 2 - BASE_WIDTH / 2,
+    y: gameHeight - 100,
+    width: BASE_WIDTH,
+    height: blockHeight,
+    color: BLOCK_TYPES[0].color,
+    emoji: BLOCK_TYPES[0].emoji
+  });
+  
+  spawnNewBlock();
+  
+  lastTime = performance.now();
+  if (animationId) cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function spawnNewBlock() {
+  const lastBlock = blocks[blocks.length - 1];
+  const type = BLOCK_TYPES[Math.floor(Math.random() * BLOCK_TYPES.length)];
+  
+  // Começa de um dos lados
+  const fromLeft = Math.random() < 0.5;
+  
+  currentBlock = {
+    x: fromLeft ? -lastBlock.width : gameWidth,
+    y: lastBlock.y - blockHeight,
+    width: lastBlock.width, // Começa com a mesma largura do anterior
+    height: blockHeight,
+    color: type.color,
+    emoji: type.emoji,
+    speed: 250 + score * 10, // Fica mais rápido
+    direction: fromLeft ? 1 : -1
+  };
+}
+
+function gameLoop(now) {
+  if (isGameOver) return;
+  
+  const dt = Math.min((now - lastTime) / 1000, 0.1); 
+  lastTime = now;
+  
+  update(dt);
+  draw();
+  
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function update(dt) {
+  if (!currentBlock) return;
+  
+  // Move o bloco atual
+  currentBlock.x += currentBlock.speed * currentBlock.direction * dt;
+  
+  // Se saiu da tela, inverte a direção
+  if (currentBlock.x > gameWidth) {
+    currentBlock.x = gameWidth;
+    currentBlock.direction = -1;
+  } else if (currentBlock.x + currentBlock.width < 0) {
+    currentBlock.x = -currentBlock.width;
+    currentBlock.direction = 1;
+  }
+  
+  // Ajusta a câmera se a torre estiver alta
+  const lastBlock = blocks[blocks.length - 1];
+  const targetCameraY = Math.min(0, lastBlock.y - gameHeight * 0.5);
+  cameraY += (targetCameraY - cameraY) * 5 * dt;
+}
+
+function dropBlock() {
+  if (isGameOver || !currentBlock) return;
+  
+  const lastBlock = blocks[blocks.length - 1];
+  
+  // Calcula a sobreposição
+  const overlapLeft = Math.max(currentBlock.x, lastBlock.x);
+  const overlapRight = Math.min(currentBlock.x + currentBlock.width, lastBlock.x + lastBlock.width);
+  const overlapWidth = overlapRight - overlapLeft;
+  
+  if (overlapWidth <= 0) {
+    // Errou completamente
+    gameOver();
+    return;
+  }
+  
+  // Cria o novo bloco com a parte que sobrepôs
+  const newBlock = {
+    x: overlapLeft,
+    y: currentBlock.y,
+    width: overlapWidth,
+    height: blockHeight,
+    color: currentBlock.color,
+    emoji: currentBlock.emoji
+  };
+  
+  blocks.push(newBlock);
+  score++;
+  hudScore.textContent = score;
+  
+  // Toca som
+  playBeep(600 + score * 20, 'sine', 0.1);
+  
+  // Se o bloco ficou muito pequeno, game over
+  if (overlapWidth < 10) {
+    gameOver();
+    return;
+  }
+  
+  // Cria um novo bloco para a próxima rodada
+  currentBlock = null;
+  spawnNewBlock();
+}
+
+// ==========================================
+// RENDERIZAÇÃO
+// ==========================================
+function draw() {
+  ctx.clearRect(0, 0, gameWidth, gameHeight);
+  
+  // Fundo
+  ctx.fillStyle = '#e3fafc';
+  ctx.fillRect(0, 0, gameWidth, gameHeight);
+  
+  // Nuvens (fundo)
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const cloudOffset = (performance.now() / 100) % gameWidth;
+  ctx.beginPath();
+  ctx.arc(cloudOffset, 80, 30, 0, Math.PI * 2);
+  ctx.arc(cloudOffset + 40, 80, 40, 0, Math.PI * 2);
+  ctx.arc(cloudOffset + 80, 80, 30, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc((cloudOffset + gameWidth/2) % gameWidth, 150, 25, 0, Math.PI * 2);
+  ctx.arc((cloudOffset + gameWidth/2 + 35) % gameWidth, 150, 35, 0, Math.PI * 2);
+  ctx.arc((cloudOffset + gameWidth/2 + 70) % gameWidth, 150, 25, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(0, -cameraY);
+  
+  // Desenha os blocos empilhados
+  blocks.forEach(block => {
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.roundRect(block.x + 3, block.y + 3, block.width, block.height, 6);
+    ctx.fill();
+    
+    // Bloco
+    ctx.fillStyle = block.color;
+    ctx.strokeStyle = '#4a0e14';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(block.x, block.y, block.width, block.height, 6);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Emoji
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(block.emoji, block.x + block.width/2, block.y + block.height/2);
+  });
+  
+  // Desenha o bloco atual
+  if (currentBlock) {
+    // Linha guia
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(0, currentBlock.y + blockHeight);
+    ctx.lineTo(gameWidth, currentBlock.y + blockHeight);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Sombra
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.roundRect(currentBlock.x + 3, currentBlock.y + 3, currentBlock.width, currentBlock.height, 6);
+    ctx.fill();
+    
+    // Bloco
+    ctx.fillStyle = currentBlock.color;
+    ctx.strokeStyle = '#4a0e14';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(currentBlock.x, currentBlock.y, currentBlock.width, currentBlock.height, 6);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Emoji
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(currentBlock.emoji, currentBlock.x + currentBlock.width/2, currentBlock.y + currentBlock.height/2);
+  }
+  
+  ctx.restore();
+}
+
+// ==========================================
+// CONTROLES
+// ==========================================
+function handleDrop() {
+  if (isGameOver) return;
+  if (currentBlock) {
+    dropBlock();
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    handleDrop();
+  }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  handleDrop();
+}, { passive: false });
+
+canvas.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  handleDrop();
+});
+
+// ==========================================
+// FIM DE JOGO E RANKING
+// ==========================================
+function gameOver() {
+  isGameOver = true;
+  clearInterval(animationId);
+  playBeep(100, 'sawtooth', 0.5);
+  
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('pasterryTowerHighScore', highScore);
+    hudHighScore.textContent = highScore;
+  }
+  
+  rankings.push({ name: playerName, score: score });
+  rankings.sort((a, b) => b.score - a.score);
+  rankings = rankings.slice(0, 10);
+  localStorage.setItem('pasterryTowerRankings', JSON.stringify(rankings));
+  
+  rankingList.innerHTML = rankings.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
+  }).join('');
+  
+  rankingBox.style.display = 'block';
+  
+  if (score >= highScore && score > 0) {
+    overlayTitle.textContent = "NOVO RECORDE!";
+    overlayIcon.textContent = "👑";
+  } else {
+    overlayTitle.textContent = "A Torre Caiu!";
+    overlayIcon.textContent = "💥";
+  }
+  
+  overlayText.innerHTML = `Você empilhou <b>${score}</b> pastéis.<br>Tente novamente enquanto o pastel não chega!`;
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+// ==========================================
+// INICIALIZAÇÃO DO JOGO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryTowerName', playerName);
+  playBeep(600, 'sine', 0.1);
+  startGameScreen();
+});
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  setupCanvas();
+  draw();
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "Pasterry Tower";
+  overlayIcon.textContent = "🏗️";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Toque na tela para soltar o pastel!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  startBtn.onclick = () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    setupCanvas();
+    resetGame();
+  };
+}
+
+// Inicializa o app
+initApp();
+</script>
+</body>
+</html>

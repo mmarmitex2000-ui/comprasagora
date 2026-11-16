@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry 2048 - Juntar Recheios</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* TELAS */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px; height: 65vh;
+    touch-action: none; display: flex; justify-content: center; align-items: center;
+    padding: 10px;
+  }
+  
+  #grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #bbada0;
+    padding: 8px;
+    border-radius: 10px;
+  }
+  
+  .cell {
+    background: rgba(238, 228, 218, 0.35);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    transition: background 0.1s;
+  }
+  
+  .cell.filled {
+    background: #eee4da;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: pop 0.2s;
+  }
+  
+  @keyframes pop {
+    0% { transform: scale(0.5); }
+    100% { transform: scale(1); }
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+
+  .controls-hint {
+    margin-top: 15px; font-size: 0.8rem; color: #888; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry 2048!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Junte os recheios iguais até chegar no Pastel Supremo.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>PONTOS</span>
+      <strong id="hudScore">0</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">0</strong>
+    </div>
+  </div>
+
+  <div id="game-container">
+    <div id="grid-container"></div>
+    
+    <div class="overlay" id="overlay">
+      <div class="trophy" id="overlayIcon">🥟</div>
+      <h2 id="overlayTitle">Pasterry 2048</h2>
+      <p id="overlayText">Deslize o dedo para juntar os pastéis!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Mestres</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Deslize o dedo ou use as <b>Setas</b> para mover.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO INICIAL
+// ==========================================
+const gridContainer = document.getElementById('grid-container');
+const hudScore = document.getElementById('hudScore');
+const hudHighScore = document.getElementById('hudHighScore');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const rankingBox = document.getElementById('rankingBox');
+const rankingList = document.getElementById('rankingList');
+const startBtn = document.getElementById('startBtn');
+
+// Telas
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+
+let playerName = localStorage.getItem('pasterry2048Name') || '';
+let highScore = parseInt(localStorage.getItem('pasterry2048HighScore') || '0', 10);
+hudHighScore.textContent = highScore;
+
+let rankings = JSON.parse(localStorage.getItem('pasterry2048Rankings') || '[]');
+
+// ==========================================
+// ESTADO DO JOGO
+// ==========================================
+const GRID_SIZE = 4;
+let grid = [];
+let score = 0;
+let isGameOver = false;
+let hasWon = false;
+
+// Configuração dos Recheios (Emojis e Cores)
+// A ordem importa: 0 não é usado, 1 é o menor, 8 é o Supremo
+const TILES = {
+  1: { emoji: '🥟', color: '#f5c542' }, // Pastel básico
+  2: { emoji: '🥩', color: '#e03131' }, // Carne
+  3: { emoji: '🧀', color: '#fcc419' }, // Queijo
+  4: { emoji: '🍕', color: '#e8590c' }, // Pizza
+  5: { emoji: '🥓', color: '#c92a2a' }, // Bacon
+  6: { emoji: '🌿', color: '#40c057' }, // Verde
+  7: { emoji: '🍫', color: '#5c3a21' }, // Chocolate
+  8: { emoji: '🏆', color: '#fcd116' }  // Supremo
+};
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function resetGame() {
+  grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+  score = 0;
+  isGameOver = false;
+  hasWon = false;
+  
+  hudScore.textContent = score;
+  overlay.classList.add('hidden');
+  
+  // Adiciona dois blocos iniciais
+  addRandomTile();
+  addRandomTile();
+  
+  renderGrid();
+}
+
+function addRandomTile() {
+  const emptyCells = [];
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] === 0) emptyCells.push({ r, c });
+    }
+  }
+  
+  if (emptyCells.length === 0) return;
+  
+  const { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  // 90% de chance de ser 1 (pastel básico), 10% de ser 2 (carne)
+  grid[r][c] = Math.random() < 0.9 ? 1 : 2;
+}
+
+function renderGrid() {
+  gridContainer.innerHTML = '';
+  
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      
+      const value = grid[r][c];
+      if (value > 0) {
+        cell.classList.add('filled');
+        cell.textContent = TILES[value].emoji;
+        cell.style.background = TILES[value].color;
+        cell.style.color = (value >= 7) ? '#fff' : '#4a0e14';
+      }
+      
+      gridContainer.appendChild(cell);
+    }
+  }
+}
+
+function move(direction) {
+  if (isGameOver) return;
+  
+  let moved = false;
+  const oldGrid = JSON.stringify(grid);
+  
+  // Direções: 0=Cima, 1=Baixo, 2=Esquerda, 3=Direita
+  if (direction === 0) { // Cima
+    for (let c = 0; c < GRID_SIZE; c++) {
+      let column = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        if (grid[r][c] !== 0) column.push(grid[r][c]);
+      }
+      
+      for (let i = 0; i < column.length - 1; i++) {
+        if (column[i] === column[i + 1]) {
+          column[i]++;
+          score += Math.pow(2, column[i]);
+          column.splice(i + 1, 1);
+          if (column[i] === 8) hasWon = true;
+        }
+      }
+      
+      while (column.length < GRID_SIZE) column.push(0);
+      
+      for (let r = 0; r < GRID_SIZE; r++) {
+        grid[r][c] = column[r];
+      }
+    }
+  } else if (direction === 1) { // Baixo
+    for (let c = 0; c < GRID_SIZE; c++) {
+      let column = [];
+      for (let r = GRID_SIZE - 1; r >= 0; r--) {
+        if (grid[r][c] !== 0) column.push(grid[r][c]);
+      }
+      
+      for (let i = 0; i < column.length - 1; i++) {
+        if (column[i] === column[i + 1]) {
+          column[i]++;
+          score += Math.pow(2, column[i]);
+          column.splice(i + 1, 1);
+          if (column[i] === 8) hasWon = true;
+        }
+      }
+      
+      while (column.length < GRID_SIZE) column.push(0);
+      
+      for (let r = GRID_SIZE - 1; r >= 0; r--) {
+        grid[r][c] = column[GRID_SIZE - 1 - r];
+      }
+    }
+  } else if (direction === 2) { // Esquerda
+    for (let r = 0; r < GRID_SIZE; r++) {
+      let row = [];
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (grid[r][c] !== 0) row.push(grid[r][c]);
+      }
+      
+      for (let i = 0; i < row.length - 1; i++) {
+        if (row[i] === row[i + 1]) {
+          row[i]++;
+          score += Math.pow(2, row[i]);
+          row.splice(i + 1, 1);
+          if (row[i] === 8) hasWon = true;
+        }
+      }
+      
+      while (row.length < GRID_SIZE) row.push(0);
+      
+      for (let c = 0; c < GRID_SIZE; c++) {
+        grid[r][c] = row[c];
+      }
+    }
+  } else if (direction === 3) { // Direita
+    for (let r = 0; r < GRID_SIZE; r++) {
+      let row = [];
+      for (let c = GRID_SIZE - 1; c >= 0; c--) {
+        if (grid[r][c] !== 0) row.push(grid[r][c]);
+      }
+      
+      for (let i = 0; i < row.length - 1; i++) {
+        if (row[i] === row[i + 1]) {
+          row[i]++;
+          score += Math.pow(2, row[i]);
+          row.splice(i + 1, 1);
+          if (row[i] === 8) hasWon = true;
+        }
+      }
+      
+      while (row.length < GRID_SIZE) row.push(0);
+      
+      for (let c = GRID_SIZE - 1; c >= 0; c--) {
+        grid[r][c] = row[GRID_SIZE - 1 - c];
+      }
+    }
+  }
+  
+  if (JSON.stringify(grid) !== oldGrid) {
+    moved = true;
+    addRandomTile();
+    renderGrid();
+    hudScore.textContent = score;
+    playBeep(600, 'sine', 0.05);
+    
+    if (hasWon) {
+      winGame();
+      return;
+    }
+    
+    if (!canMove()) {
+      gameOver();
+    }
+  }
+}
+
+function canMove() {
+  // Verifica se há células vazias
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] === 0) return true;
+    }
+  }
+  
+  // Verifica se há movimentos possíveis
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (r < GRID_SIZE - 1 && grid[r][c] === grid[r + 1][c]) return true;
+      if (c < GRID_SIZE - 1 && grid[r][c] === grid[r][c + 1]) return true;
+    }
+  }
+  
+  return false;
+}
+
+// ==========================================
+// CONTROLES
+// ==========================================
+window.addEventListener('keydown', (e) => {
+  if (isGameOver) return;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+  }
+  
+  if (e.key === 'ArrowUp') move(0);
+  if (e.key === 'ArrowDown') move(1);
+  if (e.key === 'ArrowLeft') move(2);
+  if (e.key === 'ArrowRight') move(3);
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.getElementById('game-container').addEventListener('touchstart', (e) => {
+  if (isGameOver) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: false });
+
+document.getElementById('game-container').addEventListener('touchend', (e) => {
+  if (isGameOver) return;
+  
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 30) move(3); // Direita
+    else if (dx < -30) move(2); // Esquerda
+  } else {
+    if (dy > 30) move(1); // Baixo
+    else if (dy < -30) move(0); // Cima
+  }
+}, { passive: false });
+
+// ==========================================
+// FIM DE JOGO E VITÓRIA
+// ==========================================
+function gameOver() {
+  isGameOver = true;
+  playBeep(100, 'sawtooth', 0.5);
+  
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('pasterry2048HighScore', highScore);
+    hudHighScore.textContent = highScore;
+  }
+  
+  rankings.push({ name: playerName, score: score });
+  rankings.sort((a, b) => b.score - a.score);
+  rankings = rankings.slice(0, 10);
+  localStorage.setItem('pasterry2048Rankings', JSON.stringify(rankings));
+  
+  rankingList.innerHTML = rankings.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
+  }).join('');
+  
+  rankingBox.style.display = 'block';
+  
+  if (score >= highScore && score > 0) {
+    overlayTitle.textContent = "NOVO RECORDE!";
+    overlayIcon.textContent = "👑";
+  } else {
+    overlayTitle.textContent = "Fim de Jogo!";
+    overlayIcon.textContent = "💥";
+  }
+  
+  overlayText.innerHTML = `Você fez <b>${score}</b> pontos.<br>Tente novamente enquanto o pastel não chega!`;
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+function winGame() {
+  isGameOver = true;
+  playBeep(800, 'sine', 0.1);
+  setTimeout(() => playBeep(1000, 'sine', 0.1), 100);
+  setTimeout(() => playBeep(1200, 'sine', 0.1), 200);
+  setTimeout(() => playBeep(1600, 'sine', 0.3), 300);
+  
+  overlayIcon.textContent = "🏆";
+  overlayTitle.textContent = "VOCÊ É UMA LENDA!";
+  overlayText.innerHTML = `Incrível, <b>${playerName}</b>! Você chegou no <b>Pastel Supremo</b> com ${score} pontos!`;
+  
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+// ==========================================
+// INICIALIZAÇÃO DO JOGO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterry2048Name', playerName);
+  playBeep(600, 'sine', 0.1);
+  startGameScreen();
+});
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "Pasterry 2048";
+  overlayIcon.textContent = "🥟";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Junte os recheios até o Pastel Supremo!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  startBtn.onclick = () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    resetGame();
+  };
+}
+
+// Inicializa o app
+initApp();
+</script>
+</body>
+</html>

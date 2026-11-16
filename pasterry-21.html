@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry 21 - Blackjack</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+    --mesa: #1b5e20;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  .game-actions {
+    display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 10px;
+  }
+  .action-btn {
+    flex: 1; padding: 8px; font-size: 0.8rem; font-weight: 800;
+    background: var(--azul); color: #fff;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    cursor: pointer; box-shadow: 0 3px 0 var(--marrom);
+    transition: transform 0.1s;
+  }
+  .action-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .action-btn.reset { background: var(--vermelho); }
+  .action-btn.menu { background: #6c757d; }
+
+  #game-container {
+    position: relative; background: var(--mesa);
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px; height: 65vh;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 15px;
+  }
+  
+  .dealer-area {
+    display: flex; flex-direction: column; align-items: center;
+    height: 35%;
+  }
+  .dealer-label {
+    color: #fff; font-weight: 800; font-size: 0.8rem;
+    margin-bottom: 5px; text-transform: uppercase;
+  }
+  .dealer-cards { display: flex; gap: 5px; justify-content: center; }
+  
+  .player-area {
+    display: flex; flex-direction: column; align-items: center;
+    height: 35%;
+    justify-content: flex-end;
+  }
+  .player-label {
+    color: #fff; font-weight: 800; font-size: 0.8rem;
+    margin-bottom: 5px; text-transform: uppercase;
+  }
+  .player-cards { display: flex; gap: 5px; justify-content: center; }
+  
+  .card {
+    width: 60px; height: 90px;
+    background: #fff; border-radius: 6px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-weight: 900; font-size: 1.2rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    border: 2px solid #ccc;
+  }
+  .card.red { color: var(--vermelho); }
+  .card.black { color: var(--marrom); }
+  
+  .card.hidden {
+    background: var(--marrom);
+    background-image: radial-gradient(var(--amarelo) 2px, transparent 2px);
+    background-size: 8px 8px;
+    color: transparent;
+    border-color: var(--amarelo);
+  }
+  
+  .controls-area {
+    display: flex; flex-direction: column; align-items: center;
+    height: 30%;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .bet-controls {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .bet-btn {
+    padding: 5px 15px; background: var(--amarelo); color: var(--marrom);
+    border: 2px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; cursor: pointer;
+    font-size: 1rem;
+  }
+  .bet-btn:active { transform: scale(0.95); }
+  .bet-value {
+    color: #fff; font-weight: 800; font-size: 1.2rem;
+    background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 10px;
+    min-width: 80px; text-align: center;
+  }
+  
+  .action-controls {
+    display: flex; gap: 10px; width: 100%;
+  }
+  .btn-hit, .btn-stand, .btn-double, .btn-new {
+    flex: 1; padding: 12px; font-weight: 800; font-size: 0.9rem;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    cursor: pointer; transition: transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+  }
+  .btn-hit { background: var(--verde); color: #fff; }
+  .btn-stand { background: var(--vermelho); color: #fff; }
+  .btn-double { background: var(--azul); color: #fff; }
+  .btn-new { background: var(--laranja); color: var(--amarelo); }
+  .btn-hit:active, .btn-stand:active, .btn-double:active, .btn-new:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 rgba(0,0,0,0.3);
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
+  .rank-line:last-child { border-bottom: none; }
+
+  .controls-hint {
+    margin-top: 15px; font-size: 0.8rem; color: #888; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="btn-back">🏠 Início</a>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry 21!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Chegue o mais perto de 21 sem estourar.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>FICHAS</span>
+      <strong id="hudChips">1000</strong>
+    </div>
+    <div class="hud-item">
+      <span>APOSTA</span>
+      <strong id="hudBet">100</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">0</strong>
+    </div>
+  </div>
+
+  <div class="game-actions">
+    <button class="action-btn reset" id="resetGameBtn">🔄 Reiniciar Tudo</button>
+    <button class="action-btn menu" id="backToMenuBtn">⬅️ Menu</button>
+  </div>
+
+  <div id="game-container">
+    <div class="dealer-area">
+      <div class="dealer-label">Dealer</div>
+      <div class="dealer-cards" id="dealerCards"></div>
+    </div>
+    
+    <div class="player-area">
+      <div class="player-label" id="playerLabel">Sua Mão (0)</div>
+      <div class="player-cards" id="playerCards"></div>
+    </div>
+    
+    <div class="controls-area">
+      <div class="bet-controls" id="betControls">
+        <button class="bet-btn" onclick="changeBet(-50)">-50</button>
+        <div class="bet-value" id="betValue">100</div>
+        <button class="bet-btn" onclick="changeBet(50)">+50</button>
+      </div>
+      
+      <div class="action-controls" id="actionControls" style="display:none;">
+        <button class="btn-hit" id="hitBtn">Pedir</button>
+        <button class="btn-stand" id="standBtn">Parar</button>
+        <button class="btn-double" id="doubleBtn">Dobrar</button>
+      </div>
+      
+      <button class="btn-new" id="newRoundBtn" style="width:100%;">Nova Rodada</button>
+    </div>
+    
+    <div class="overlay hidden" id="overlay">
+      <div class="trophy" id="overlayIcon">🃏</div>
+      <h2 id="overlayTitle">Pasterry 21</h2>
+      <p id="overlayText">Boa sorte!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Jogadores</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Objetivo: Chegar a 21 sem estourar. Ás vale 1 ou 11, figuras valem 10.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO INICIAL
+// ==========================================
+const dealerCardsEl = document.getElementById('dealerCards');
+const playerCardsEl = document.getElementById('playerCards');
+const playerLabel = document.getElementById('playerLabel');
+const hudChips = document.getElementById('hudChips');
+const hudBet = document.getElementById('hudBet');
+const hudHighScore = document.getElementById('hudHighScore');
+const betControls = document.getElementById('betControls');
+const actionControls = document.getElementById('actionControls');
+const betValue = document.getElementById('betValue');
+const newRoundBtn = document.getElementById('newRoundBtn');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const rankingBox = document.getElementById('rankingBox');
+const rankingList = document.getElementById('rankingList');
+const startBtn = document.getElementById('startBtn');
+
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+
+let playerName = localStorage.getItem('pasterry21Name') || '';
+let highScore = parseInt(localStorage.getItem('pasterry21HighScore') || '0', 10);
+hudHighScore.textContent = highScore;
+
+let rankings = JSON.parse(localStorage.getItem('pasterry21Rankings') || '[]');
+
+// ==========================================
+// ESTADO DO JOGO
+// ==========================================
+const SUITS = ['♠', '♥', '♦', '♣'];
+const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+let deck = [];
+let playerHand = [];
+let dealerHand = [];
+let playerScore = 0;
+let dealerScore = 0;
+let chips = 1000;
+let currentBet = 100;
+let isRoundActive = false;
+let canDouble = false;
+
+// ==========================================
+// FUNÇÕES AUXILIARES
+// ==========================================
+function createDeck() {
+  const newDeck = [];
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      newDeck.push({ suit, rank });
+    }
+  }
+  return newDeck;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function resetGame() {
+  deck = shuffle(createDeck());
+  playerHand = [];
+  dealerHand = [];
+  playerScore = 0;
+  dealerScore = 0;
+  isRoundActive = false;
+  canDouble = false;
+  
+  chips = parseInt(localStorage.getItem('pasterry21Chips') || '1000', 10);
+  currentBet = 100;
+  
+  updateHUD();
+  renderCards();
+  
+  betControls.style.display = 'flex';
+  actionControls.style.display = 'none';
+  newRoundBtn.style.display = 'block';
+  newRoundBtn.textContent = "Nova Rodada";
+  newRoundBtn.disabled = false;
+}
+
+function updateHUD() {
+  hudChips.textContent = chips;
+  hudBet.textContent = currentBet;
+  betValue.textContent = currentBet;
+  localStorage.setItem('pasterry21Chips', chips);
+}
+
+function changeBet(amount) {
+  if (isRoundActive) return;
+  currentBet += amount;
+  if (currentBet < 10) currentBet = 10;
+  if (currentBet > chips) currentBet = chips;
+  updateHUD();
+}
+
+function startRound() {
+  if (chips < currentBet) {
+    alert("Você não tem fichas suficientes!");
+    return;
+  }
+  
+  chips -= currentBet;
+  updateHUD();
+  
+  deck = shuffle(createDeck());
+  playerHand = [];
+  dealerHand = [];
+  playerScore = 0;
+  dealerScore = 0;
+  isRoundActive = true;
+  canDouble = true;
+  
+  playerHand.push(deck.pop());
+  dealerHand.push(deck.pop());
+  playerHand.push(deck.pop());
+  dealerHand.push(deck.pop());
+  
+  updateScores();
+  renderCards();
+  
+  betControls.style.display = 'none';
+  newRoundBtn.style.display = 'none';
+  actionControls.style.display = 'flex';
+  
+  if (playerScore === 21) {
+    setTimeout(stand, 500);
+  }
+}
+
+function updateScores() {
+  playerScore = calculateScore(playerHand);
+  dealerScore = calculateScore(dealerHand);
+  playerLabel.textContent = `Sua Mão (${playerScore})`;
+}
+
+function calculateScore(hand) {
+  let score = 0;
+  let aces = 0;
+  
+  for (const card of hand) {
+    if (card.rank === 'A') {
+      aces++;
+      score += 11;
+    } else if (['J', 'Q', 'K'].includes(card.rank)) {
+      score += 10;
+    } else {
+      score += parseInt(card.rank);
+    }
+  }
+  
+  while (score > 21 && aces > 0) {
+    score -= 10;
+    aces--;
+  }
+  
+  return score;
+}
+
+function renderCards() {
+  dealerCardsEl.innerHTML = '';
+  dealerHand.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    const isHidden = (index === 1 && isRoundActive);
+    cardEl.className = `card ${isHidden ? 'hidden' : (card.suit === '♥' || card.suit === '♦' ? 'red' : 'black')}`;
+    cardEl.innerHTML = isHidden ? '' : `${card.rank}<br>${card.suit}`;
+    dealerCardsEl.appendChild(cardEl);
+  });
+  
+  playerCardsEl.innerHTML = '';
+  playerHand.forEach(card => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `card ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}`;
+    cardEl.innerHTML = `${card.rank}<br>${card.suit}`;
+    playerCardsEl.appendChild(cardEl);
+  });
+}
+
+function hit() {
+  if (!isRoundActive) return;
+  canDouble = false;
+  playerHand.push(deck.pop());
+  updateScores();
+  renderCards();
+  if (playerScore > 21) endRound('estourou');
+}
+
+function stand() {
+  if (!isRoundActive) return;
+  
+  isRoundActive = false;
+  canDouble = false;
+  actionControls.style.display = 'none';
+  
+  while (dealerScore < 17) {
+    dealerHand.push(deck.pop());
+    updateScores();
+    renderCards();
+  }
+  
+  renderCards();
+  
+  setTimeout(() => {
+    if (dealerScore > 21) endRound('dealer_estourou');
+    else if (playerScore > dealerScore) endRound('vitoria');
+    else if (playerScore < dealerScore) endRound('derrota');
+    else endRound('empate');
+  }, 500);
+}
+
+function double() {
+  if (!isRoundActive || !canDouble) return;
+  if (chips < currentBet) {
+    alert("Você não tem fichas suficientes para dobrar!");
+    return;
+  }
+  
+  chips -= currentBet;
+  currentBet *= 2;
+  updateHUD();
+  canDouble = false;
+  playerHand.push(deck.pop());
+  updateScores();
+  renderCards();
+  
+  if (playerScore > 21) endRound('estourou');
+  else stand();
+}
+
+function endRound(result) {
+  isRoundActive = false;
+  actionControls.style.display = 'none';
+  newRoundBtn.style.display = 'block';
+  newRoundBtn.textContent = "Nova Rodada";
+  betControls.style.display = 'flex';
+  
+  let message = '';
+  let icon = '🃏';
+  let winAmount = 0;
+  
+  if (result === 'vitoria') { message = "Você Venceu!"; icon = '🏆'; winAmount = currentBet * 2; }
+  else if (result === 'derrota') { message = "Você Perdeu!"; icon = '💥'; }
+  else if (result === 'empate') { message = "Empate!"; icon = '🤝'; winAmount = currentBet; }
+  else if (result === 'estourou') { message = "Você Estourou!"; icon = '💥'; }
+  else if (result === 'dealer_estourou') { message = "Dealer Estourou! Você Venceu!"; icon = '🏆'; winAmount = currentBet * 2; }
+  
+  chips += winAmount;
+  updateHUD();
+  
+  if (chips > highScore) {
+    highScore = chips;
+    localStorage.setItem('pasterry21HighScore', highScore);
+    hudHighScore.textContent = highScore;
+  }
+  
+  if (chips === highScore && winAmount > 0) {
+    const existing = rankings.findIndex(r => r.name === playerName);
+    if (existing > -1) rankings[existing].score = chips;
+    else rankings.push({ name: playerName, score: chips });
+    rankings.sort((a, b) => b.score - a.score);
+    rankings = rankings.slice(0, 10);
+    localStorage.setItem('pasterry21Rankings', JSON.stringify(rankings));
+  }
+  
+  if (chips < 10) {
+    chips = 100;
+    updateHUD();
+    message += "<br>Você recebeu 100 fichas de bônus!";
+  }
+  
+  overlayTitle.textContent = message;
+  overlayIcon.textContent = icon;
+  overlayText.innerHTML = `Sua mão: <b>${playerScore}</b> | Dealer: <b>${dealerScore}</b><br>Fichas: ${chips}`;
+  
+  rankingList.innerHTML = rankings.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
+  }).join('');
+  
+  rankingBox.style.display = 'block';
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "Pasterry 21";
+  overlayIcon.textContent = "🃏";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Chegue a 21 sem estourar!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  // O botão Jogar agora inicia a rodada corretamente
+  startBtn.onclick = () => {
+    overlay.classList.add('hidden');
+    resetGame();
+    startRound();
+  };
+}
+
+// BOTÕES
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterry21Name', playerName);
+  startGameScreen();
+});
+
+document.getElementById('hitBtn').addEventListener('click', hit);
+document.getElementById('standBtn').addEventListener('click', stand);
+document.getElementById('doubleBtn').addEventListener('click', double);
+
+newRoundBtn.addEventListener('click', startRound);
+
+document.getElementById('resetGameBtn').addEventListener('click', () => {
+  if (confirm("Reiniciar o jogo? Suas fichas voltarão a 1000.")) {
+    chips = 1000;
+    localStorage.setItem('pasterry21Chips', chips);
+    resetGame();
+    overlay.classList.add('hidden');
+    startRound();
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', () => {
+  if (confirm("Voltar ao menu inicial?")) {
+    gameScreen.classList.remove('active');
+    welcomeScreen.classList.add('active');
+  }
+});
+
+// Inicia o app
+initApp();
+</script>
+</body>
+</html>

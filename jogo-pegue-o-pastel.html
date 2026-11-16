@@ -59,6 +59,26 @@
   }
   .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
 
+  /* TELAS */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
   .hud {
     display: flex; justify-content: space-between; align-items: center;
     width: 100%; max-width: 400px; margin-bottom: 5px;
@@ -129,46 +149,63 @@
     </div>
     <div class="brand-name">Pasterry</div>
   </div>
-  <div class="player-tag" id="playerTag">
+  <div class="player-tag" id="playerTag" style="display:none;">
     <span>JOGADOR</span>
     <div id="playerTagName">-</div>
   </div>
 </div>
 
-<div class="hud">
-  <div class="hud-item">
-    <span>PONTOS</span>
-    <strong id="hudScore">0</strong>
-  </div>
-  <div class="hud-item">
-    <span>VIDAS</span>
-    <strong id="hudLives">❤️❤️❤️</strong>
-  </div>
-  <div class="hud-item">
-    <span>RECORDE</span>
-    <strong id="hudHighScore">0</strong>
+<!-- TELA 1: NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo à Jornada do Pastel!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Digite seu nome para começar a pegar os pastéis.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
   </div>
 </div>
 
-<div id="game-container">
-  <canvas id="gameCanvas"></canvas>
-  
-  <div class="overlay" id="overlay">
-    <div class="trophy" id="overlayIcon">🍽️</div>
-    <h2 id="overlayTitle">A Jornada do Pastel</h2>
-    <p id="overlayText">Mova o prato para pegar os pastéis e desviar das bombas!</p>
-    
-    <div class="ranking-box" id="rankingBox" style="display:none;">
-      <h3>🏆 Top 10 Clientes</h3>
-      <div id="rankingList"></div>
+<!-- TELA 2: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>NÍVEL</span>
+      <strong id="hudLevel">1</strong>
     </div>
-
-    <button class="btn" id="startBtn">Jogar</button>
+    <div class="hud-item">
+      <span>PONTOS</span>
+      <strong id="hudScore">0</strong>
+    </div>
+    <div class="hud-item">
+      <span>VIDAS</span>
+      <strong id="hudLives">❤️❤️❤️</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">0</strong>
+    </div>
   </div>
-</div>
 
-<div class="controls-hint">
-  Use o <b>mouse</b> ou deslize o dedo na tela para mover.
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="overlay" id="overlay">
+      <div class="trophy" id="overlayIcon">🍽️</div>
+      <h2 id="overlayTitle">A Jornada do Pastel</h2>
+      <p id="overlayText">Mova o prato para pegar os pastéis e desviar das bombas!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Clientes</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Use o <b>mouse</b> ou deslize o dedo na tela para mover.
+  </div>
 </div>
 
 <script>
@@ -178,6 +215,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const hudLevel = document.getElementById('hudLevel');
 const hudScore = document.getElementById('hudScore');
 const hudLives = document.getElementById('hudLives');
 const hudHighScore = document.getElementById('hudHighScore');
@@ -189,9 +227,14 @@ const rankingBox = document.getElementById('rankingBox');
 const rankingList = document.getElementById('rankingList');
 const startBtn = document.getElementById('startBtn');
 
-let playerName = localStorage.getItem('pasterryBubbleName') || 'ANÔNIMO';
-document.getElementById('playerTagName').textContent = playerName;
+// Telas
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
 
+let playerName = localStorage.getItem('pasterryPastelName') || '';
 let highScore = parseInt(localStorage.getItem('pasterryPastelHighScore') || '0', 10);
 hudHighScore.textContent = highScore;
 
@@ -203,18 +246,23 @@ let rankings = JSON.parse(localStorage.getItem('pasterryPastelRankings') || '[]'
 let gameWidth = 0;
 let gameHeight = 0;
 let score = 0;
+let level = 1;
 let lives = 3;
 let isGameOver = false;
 let animationId = null;
 let lastTime = 0;
 let spawnTimer = 0;
-let spawnInterval = 1000; // Começa caindo 1 item por segundo
+let spawnInterval = 1200; 
 let speedMultiplier = 1;
+let bonusTimer = 0;
 
 // Entidades
-let player = { x: 0, y: 0, width: 70, height: 30, speed: 0.8 };
+let player = { x: 0, y: 0, width: 80, height: 35, speed: 0.8 };
 let items = [];
 let particles = [];
+let targetX = null;
+let bonusLogo = null; // Bônus especial Logo
+let bonusText = null; // Bônus especial Texto PASTERRY
 
 // Configuração dos Itens
 const ITEM_TYPES = [
@@ -250,14 +298,20 @@ function setupCanvas() {
 // ==========================================
 function resetGame() {
   score = 0;
+  level = 1;
   lives = 3;
   isGameOver = false;
   spawnTimer = 0;
-  spawnInterval = 1000;
+  spawnInterval = 1200;
   speedMultiplier = 1;
+  bonusTimer = 0;
   items = [];
   particles = [];
+  bonusLogo = null;
+  bonusText = null;
+  targetX = null;
   
+  hudLevel.textContent = level;
   hudScore.textContent = score;
   hudLives.textContent = '❤️❤️❤️';
   
@@ -283,31 +337,50 @@ function gameLoop(now) {
 }
 
 function update(dt) {
-  // Movimento do jogador (suavizado)
+  // Movimento do jogador
   if (targetX !== null) {
     const diff = targetX - (player.x + player.width / 2);
     player.x += diff * player.speed;
     
-    // Limita às bordas
     if (player.x < 0) player.x = 0;
     if (player.x + player.width > gameWidth) player.x = gameWidth - player.width;
   }
 
-  // Geração de itens
+  // Sistema de Níveis (A cada 100 pontos sobe de nível)
+  const newLevel = Math.floor(score / 100) + 1;
+  if (newLevel > level) {
+    level = newLevel;
+    hudLevel.textContent = level;
+    playBeep(1000, 'triangle', 0.3);
+    
+    // Aumenta a dificuldade
+    if (spawnInterval > 600) spawnInterval -= 30;
+    speedMultiplier += 0.1;
+  }
+
+  // Geração de itens normais
   spawnTimer += dt * 1000;
   if (spawnTimer > spawnInterval) {
     spawnItem();
     spawnTimer = 0;
-    
-    // Aumenta a dificuldade gradualmente
-    if (spawnInterval > 300) spawnInterval -= 10;
-    speedMultiplier += 0.01;
+  }
+
+  // Geração dos Bônus
+  bonusTimer += dt * 1000;
+  if (bonusTimer > 10000 && !bonusLogo && !bonusText) { // A cada 10 segundos
+    const type = Math.random();
+    if (type < 0.3) {
+      spawnBonusLogo();
+    } else if (type < 0.6) {
+      spawnBonusText();
+    }
+    bonusTimer = 0;
   }
 
   // Atualiza itens caindo
   for (let i = items.length - 1; i >= 0; i--) {
     let item = items[i];
-    item.y += item.speed * speedMultiplier * dt * 60;
+    item.y += item.speed * speedMultiplier * dt;
     
     // Colisão com o prato
     if (
@@ -329,18 +402,68 @@ function update(dt) {
         
         if (lives <= 0) {
           gameOver();
+          return;
         }
       }
       items.splice(i, 1);
       continue;
     }
     
-    // Remove se saiu da tela
     if (item.y > gameHeight) {
       if (item.type === 'pastel') {
-        // Perdeu um pastel (opcional: não penaliza, apenas ignora)
+        lives--;
+        updateLivesDisplay();
+        playBeep(200, 'sawtooth', 0.2);
+        
+        if (lives <= 0) {
+          gameOver();
+          return;
+        }
       }
       items.splice(i, 1);
+    }
+  }
+
+  // Atualiza o Bônus Logo
+  if (bonusLogo) {
+    bonusLogo.y += bonusLogo.speed * speedMultiplier * dt;
+    
+    if (
+      bonusLogo.y + bonusLogo.size > player.y &&
+      bonusLogo.y < player.y + player.height &&
+      bonusLogo.x + bonusLogo.size > player.x &&
+      bonusLogo.x < player.x + player.width
+    ) {
+      score += 100;
+      hudScore.textContent = score;
+      playBeep(1200, 'sine', 0.1);
+      setTimeout(() => playBeep(1500, 'sine', 0.1), 100);
+      setTimeout(() => playBeep(1800, 'sine', 0.2), 200);
+      createParticles(bonusLogo.x, bonusLogo.y, '#fcd116');
+      bonusLogo = null;
+    } else if (bonusLogo.y > gameHeight) {
+      bonusLogo = null;
+    }
+  }
+
+  // Atualiza o Bônus Texto (PASTERRY)
+  if (bonusText) {
+    bonusText.y += bonusText.speed * speedMultiplier * dt;
+    
+    if (
+      bonusText.y + 30 > player.y &&
+      bonusText.y < player.y + player.height &&
+      bonusText.x + 100 > player.x &&
+      bonusText.x < player.x + player.width
+    ) {
+      score += 50;
+      hudScore.textContent = score;
+      playBeep(1000, 'sine', 0.1);
+      setTimeout(() => playBeep(1300, 'sine', 0.1), 100);
+      createParticles(bonusText.x, bonusText.y, '#e8590c');
+      bonusText = null;
+    } else if (bonusText.y > gameHeight) {
+      bonusText = null;
     }
   }
 
@@ -350,22 +473,41 @@ function update(dt) {
     p.x += p.vx;
     p.y += p.vy;
     p.life -= dt;
-    p.vy += 0.5; // Gravidade
+    p.vy += 0.5;
     if (p.life <= 0) particles.splice(i, 1);
   }
 }
 
 function spawnItem() {
   const randomType = ITEM_TYPES[Math.floor(Math.random() * ITEM_TYPES.length)];
-  const size = 35;
+  const size = 40;
   
   items.push({
     x: Math.random() * (gameWidth - size),
     y: -size,
     size: size,
-    speed: 200 + Math.random() * 100,
+    speed: 150 + Math.random() * 50,
     ...randomType
   });
+}
+
+function spawnBonusLogo() {
+  bonusLogo = {
+    x: Math.random() * (gameWidth - 50) + 10,
+    y: -50,
+    size: 50,
+    speed: 120
+  };
+  playBeep(1500, 'sine', 0.2);
+}
+
+function spawnBonusText() {
+  bonusText = {
+    x: Math.random() * (gameWidth - 120) + 10,
+    y: -40,
+    speed: 100
+  };
+  playBeep(1800, 'sine', 0.2);
 }
 
 function updateLivesDisplay() {
@@ -394,7 +536,7 @@ function createParticles(x, y, color) {
 function draw() {
   ctx.clearRect(0, 0, gameWidth, gameHeight);
   
-  // Fundo (padrão de mesa)
+  // Fundo
   ctx.fillStyle = '#fffdf8';
   ctx.fillRect(0, 0, gameWidth, gameHeight);
   ctx.strokeStyle = 'rgba(0,0,0,0.03)';
@@ -406,10 +548,9 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(gameWidth, i); ctx.stroke();
   }
 
-  // Itens caindo
+  // Itens normais
   items.forEach(item => {
     if (item.type === 'bomb') {
-      // Desenha um fundo vermelho para a bomba
       ctx.fillStyle = 'rgba(224, 49, 49, 0.2)';
       ctx.beginPath();
       ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size/2 + 5, 0, Math.PI * 2);
@@ -421,6 +562,48 @@ function draw() {
     ctx.textBaseline = 'middle';
     ctx.fillText(item.emoji, item.x + item.size/2, item.y + item.size/2);
   });
+
+  // Bônus Logo
+  if (bonusLogo) {
+    ctx.fillStyle = '#fcd116';
+    ctx.beginPath();
+    ctx.arc(bonusLogo.x + bonusLogo.size/2, bonusLogo.y + bonusLogo.size/2, bonusLogo.size/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    const logoImg = new Image();
+    logoImg.src = 'img/logo.jpg';
+    try {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(bonusLogo.x + bonusLogo.size/2, bonusLogo.y + bonusLogo.size/2, bonusLogo.size/2 - 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(logoImg, bonusLogo.x + 2, bonusLogo.y + 2, bonusLogo.size - 4, bonusLogo.size - 4);
+      ctx.restore();
+    } catch(e) {
+      ctx.font = `${bonusLogo.size - 6}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('👑', bonusLogo.x + bonusLogo.size/2, bonusLogo.y + bonusLogo.size/2 + 1);
+    }
+  }
+
+  // Bônus Texto (PASTERRY)
+  if (bonusText) {
+    ctx.fillStyle = 'rgba(232, 89, 12, 0.1)';
+    ctx.beginPath();
+    ctx.roundRect(bonusText.x - 5, bonusText.y - 5, 130, 40, 10);
+    ctx.fill();
+    
+    ctx.font = 'bold 24px "Segoe UI", Arial';
+    ctx.fillStyle = '#e8590c';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('PASTERRY', bonusText.x, bonusText.y);
+  }
 
   // Partículas
   particles.forEach(p => {
@@ -438,15 +621,13 @@ function draw() {
   ctx.roundRect(player.x, player.y, player.width, player.height, 10);
   ctx.fill();
   
-  // Detalhe do prato (borda laranja)
   ctx.strokeStyle = '#e8590c';
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.roundRect(player.x + 2, player.y + 2, player.width - 4, player.height - 4, 8);
   ctx.stroke();
   
-  // Emoji de prato no centro
-  ctx.font = '20px Arial';
+  ctx.font = '24px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('🍽️', player.x + player.width/2, player.y + player.height/2 + 2);
@@ -455,8 +636,6 @@ function draw() {
 // ==========================================
 // CONTROLES
 // ==========================================
-let targetX = null;
-
 function handlePointerMove(e) {
   if (isGameOver) return;
   const rect = canvas.getBoundingClientRect();
@@ -510,7 +689,7 @@ function gameOver() {
     overlayIcon.textContent = "💥";
   }
   
-  overlayText.innerHTML = `Você fez <b>${score}</b> pontos.<br>Tente novamente enquanto o pastel não chega!`;
+  overlayText.innerHTML = `Você fez <b>${score}</b> pontos e chegou ao nível <b>${level}</b>.<br>Tente novamente enquanto o pastel não chega!`;
   startBtn.textContent = "Jogar Novamente";
   overlay.classList.remove('hidden');
 }
@@ -538,16 +717,52 @@ function playBeep(freq, type, duration) {
 }
 
 // ==========================================
-// BOTÕES E INICIALIZAÇÃO
+// INICIALIZAÇÃO DO JOGO
 // ==========================================
-startBtn.onclick = () => {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  setupCanvas();
-  resetGame();
-};
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
 
-setupCanvas();
-draw();
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryPastelName', playerName);
+  playBeep(600, 'sine', 0.1);
+  startGameScreen();
+});
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  setupCanvas();
+  draw();
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "A Jornada do Pastel";
+  overlayIcon.textContent = "🍽️";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Pegue os pastéis, desvie das bombas e pegue os bônus PASTERRY!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  startBtn.onclick = () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    setupCanvas();
+    resetGame();
+  };
+}
+
+// Inicializa o app
+initApp();
 </script>
 </body>
 </html>

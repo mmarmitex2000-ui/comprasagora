@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry Trix - Jogo de Cartas</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+    --fundo-mesa: #2b8a3e;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* TELAS */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  .game-actions {
+    display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 10px;
+  }
+  .action-btn {
+    flex: 1; padding: 8px; font-size: 0.8rem; font-weight: 800;
+    background: var(--azul); color: #fff;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    cursor: pointer; box-shadow: 0 3px 0 var(--marrom);
+    transition: transform 0.1s;
+  }
+  .action-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .action-btn.reset { background: var(--vermelho); }
+  .action-btn.menu { background: #6c757d; }
+
+  #game-container {
+    position: relative; background: var(--fundo-mesa);
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px; height: 65vh;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 10px;
+  }
+  
+  /* Área dos oponentes */
+  .opponents-area {
+    display: flex; justify-content: space-between; width: 100%;
+    height: 30%;
+  }
+  .opponent {
+    display: flex; flex-direction: column; align-items: center;
+    width: 30%;
+  }
+  .opponent-name {
+    background: rgba(0,0,0,0.5); color: #fff; padding: 2px 8px;
+    border-radius: 10px; font-size: 0.7rem; font-weight: 800;
+    margin-bottom: 5px;
+  }
+  .opponent-cards {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+  }
+  .card-back {
+    width: 20px; height: 30px;
+    background: var(--marrom); border: 1px solid var(--amarelo);
+    border-radius: 3px;
+    background-image: radial-gradient(var(--amarelo) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+
+  /* Área da mesa (cartas jogadas) */
+  .table-area {
+    display: flex; justify-content: center; align-items: center;
+    height: 40%; position: relative;
+  }
+  .played-card {
+    width: 50px; height: 75px;
+    background: #fff; border-radius: 5px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-weight: 900; font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    position: absolute;
+    transition: all 0.3s;
+  }
+  .played-card.red { color: var(--vermelho); }
+  .played-card.black { color: var(--marrom); }
+  
+  /* Posições das cartas na mesa */
+  .pos-bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+  .pos-top { top: 0; left: 50%; transform: translateX(-50%); }
+  .pos-left { left: 10%; top: 50%; transform: translateY(-50%); }
+  .pos-right { right: 10%; top: 50%; transform: translateY(-50%); }
+
+  /* Área do jogador */
+  .player-area {
+    display: flex; justify-content: center; align-items: flex-end;
+    height: 30%; gap: 5px; overflow-x: auto; padding-bottom: 5px;
+  }
+  .player-card {
+    width: 45px; height: 65px;
+    background: #fff; border-radius: 5px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    font-weight: 900; font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid transparent;
+  }
+  .player-card.red { color: var(--vermelho); }
+  .player-card.black { color: var(--marrom); }
+  .player-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--amarelo);
+  }
+  .player-card.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+
+  .controls-hint {
+    margin-top: 15px; font-size: 0.8rem; color: #888; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: NOME -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry Trix!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">O clássico jogo de cartas. Jogue contra 3 oponentes.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>SUA MÃO</span>
+      <strong id="hudCards">13</strong>
+    </div>
+    <div class="hud-item">
+      <span>CONTRATO</span>
+      <strong id="hudContract">Rei de Copas</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">0</strong>
+    </div>
+  </div>
+
+  <div class="game-actions">
+    <button class="action-btn reset" id="resetGameBtn">🔄 Nova Partida</button>
+    <button class="action-btn menu" id="backToMenuBtn">⬅️ Menu</button>
+  </div>
+
+  <div id="game-container">
+    <div class="opponents-area" id="opponentsArea"></div>
+    <div class="table-area" id="tableArea"></div>
+    <div class="player-area" id="playerArea"></div>
+    
+    <div class="overlay" id="overlay">
+      <div class="trophy" id="overlayIcon">🃏</div>
+      <h2 id="overlayTitle">Pasterry Trix</h2>
+      <p id="overlayText">Prepare-se para a partida!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Jogadores</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Clique na carta para jogar.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO INICIAL
+// ==========================================
+const opponentsArea = document.getElementById('opponentsArea');
+const tableArea = document.getElementById('tableArea');
+const playerArea = document.getElementById('playerArea');
+const hudCards = document.getElementById('hudCards');
+const hudContract = document.getElementById('hudContract');
+const hudHighScore = document.getElementById('hudHighScore');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const rankingBox = document.getElementById('rankingBox');
+const rankingList = document.getElementById('rankingList');
+const startBtn = document.getElementById('startBtn');
+
+// Telas
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+
+let playerName = localStorage.getItem('pasterryTrixName') || '';
+let highScore = parseInt(localStorage.getItem('pasterryTrixHighScore') || '0', 10);
+hudHighScore.textContent = highScore;
+
+let rankings = JSON.parse(localStorage.getItem('pasterryTrixRankings') || '[]');
+
+// ==========================================
+// ESTADO DO JOGO
+// ==========================================
+const SUITS = ['♠', '♥', '♦', '♣'];
+const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+let deck = [];
+let playerHand = [];
+let opponentsHands = [[], [], []]; // 3 oponentes
+let currentTrick = []; // Cartas jogadas na rodada atual
+let currentTurn = 0; // 0 = Jogador, 1, 2, 3 = Oponentes
+let isGameOver = false;
+let contract = null; // Contrato atual (ex: "Rei de Copas")
+let contractSuit = null; // Naipe do contrato (se for de naipe)
+let isContractActive = false;
+let aiTimer = null;
+
+// ==========================================
+// CRIAÇÃO DO BARALHO
+// ==========================================
+function createDeck() {
+  const newDeck = [];
+  for (const suit of SUITS) {
+    for (let i = 0; i < RANKS.length; i++) {
+      newDeck.push({
+        suit: suit,
+        rank: RANKS[i],
+        value: i + 2, // 2 a 14 (Ás)
+        id: `${RANKS[i]}${suit}`
+      });
+    }
+  }
+  return newDeck;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function resetGame() {
+  deck = shuffle(createDeck());
+  playerHand = [];
+  opponentsHands = [[], [], []];
+  currentTrick = [];
+  currentTurn = 0;
+  isGameOver = false;
+  contract = null;
+  contractSuit = null;
+  isContractActive = false;
+  
+  // Distribui 13 cartas para cada jogador
+  for (let i = 0; i < 13; i++) {
+    playerHand.push(deck.pop());
+    opponentsHands[0].push(deck.pop());
+    opponentsHands[1].push(deck.pop());
+    opponentsHands[2].push(deck.pop());
+  }
+  
+  // Ordena a mão do jogador
+  playerHand.sort((a, b) => b.value - a.value);
+  opponentsHands.forEach(h => h.sort((a, b) => b.value - a.value));
+  
+  // Define o contrato (simplificado)
+  const contracts = [
+    { name: "Rei de Copas", type: "king", suit: "♥" },
+    { name: "Dama de Espadas", type: "queen", suit: "♠" },
+    { name: "Valete de Ouros", type: "jack", suit: "♦" },
+    { name: "Ás de Paus", type: "ace", suit: "♣" },
+    { name: "Naipe de Copas", type: "suit", suit: "♥" },
+    { name: "Naipe de Espadas", type: "suit", suit: "♠" },
+    { name: "Naipe de Ouros", type: "suit", suit: "♦" },
+    { name: "Naipe de Paus", type: "suit", suit: "♣" }
+  ];
+  contract = contracts[Math.floor(Math.random() * contracts.length)];
+  
+  if (contract.type === "suit") {
+    contractSuit = contract.suit;
+  } else {
+    contractSuit = null;
+  }
+  
+  hudContract.textContent = contract.name;
+  hudCards.textContent = playerHand.length;
+  
+  overlay.classList.add('hidden');
+  
+  renderGame();
+  
+  // Verifica se o jogador começa (quem tem o Rei de Copas, por exemplo)
+  // Simplificação: jogador sempre começa
+  currentTurn = 0;
+  updateTurnIndicator();
+}
+
+function renderGame() {
+  // Renderiza oponentes
+  opponentsArea.innerHTML = '';
+  const names = ['Oponente 1', 'Oponente 2', 'Oponente 3'];
+  
+  opponentsHands.forEach((hand, index) => {
+    const oppEl = document.createElement('div');
+    oppEl.className = 'opponent';
+    oppEl.innerHTML = `
+      <div class="opponent-name">${names[index]} (${hand.length})</div>
+      <div class="opponent-cards">
+        ${hand.map(() => '<div class="card-back"></div>').join('')}
+      </div>
+    `;
+    opponentsArea.appendChild(oppEl);
+  });
+  
+  // Renderiza mesa
+  tableArea.innerHTML = '';
+  currentTrick.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `played-card ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}`;
+    cardEl.innerHTML = `${card.rank}<br>${card.suit}`;
+    
+    // Posição baseada no turno
+    const positions = ['pos-bottom', 'pos-left', 'pos-top', 'pos-right'];
+    cardEl.classList.add(positions[index]);
+    
+    tableArea.appendChild(cardEl);
+  });
+  
+  // Renderiza mão do jogador
+  playerArea.innerHTML = '';
+  playerHand.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `player-card ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}`;
+    cardEl.innerHTML = `${card.rank}<br>${card.suit}`;
+    
+    // Verifica se é a vez do jogador e se a carta é válida
+    if (currentTurn === 0 && !isGameOver) {
+      if (isValidPlay(card, index)) {
+        cardEl.addEventListener('click', () => playerPlayCard(index));
+      } else {
+        cardEl.classList.add('disabled');
+      }
+    } else {
+      cardEl.classList.add('disabled');
+    }
+    
+    playerArea.appendChild(cardEl);
+  });
+}
+
+function updateTurnIndicator() {
+  if (currentTurn === 0) {
+    // Vez do jogador
+    renderGame();
+  } else {
+    // Vez da IA
+    renderGame();
+    clearTimeout(aiTimer);
+    aiTimer = setTimeout(aiPlay, 1000);
+  }
+}
+
+function isValidPlay(card, index) {
+  // Se for a primeira carta da rodada, pode jogar qualquer uma
+  if (currentTrick.length === 0) {
+    // Se o contrato for de naipe, deve jogar o naipe se tiver
+    if (contract.type === 'suit') {
+      const hasSuit = playerHand.some(c => c.suit === contract.suit);
+      if (hasSuit && card.suit !== contract.suit) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  // Se não for a primeira, deve seguir o naipe da primeira carta
+  const leadSuit = currentTrick[0].suit;
+  const hasSuit = playerHand.some(c => c.suit === leadSuit);
+  
+  if (hasSuit) {
+    return card.suit === leadSuit;
+  }
+  
+  return true;
+}
+
+function playerPlayCard(index) {
+  if (currentTurn !== 0 || isGameOver) return;
+  
+  const card = playerHand[index];
+  playerHand.splice(index, 1);
+  currentTrick.push(card);
+  
+  hudCards.textContent = playerHand.length;
+  playBeep(600, 'sine', 0.1);
+  
+  // Verifica se todos jogaram
+  if (currentTrick.length === 4) {
+    resolveTrick();
+  } else {
+    currentTurn = (currentTurn + 1) % 4;
+    updateTurnIndicator();
+  }
+}
+
+function aiPlay() {
+  if (isGameOver) return;
+  
+  const oppIndex = currentTurn - 1;
+  const hand = opponentsHands[oppIndex];
+  
+  if (hand.length === 0) {
+    resolveTrick();
+    return;
+  }
+  
+  // IA simples: joga a primeira carta válida (ou a menor)
+  let cardToPlay = null;
+  let cardIndex = -1;
+  
+  if (currentTrick.length === 0) {
+    // Se for o primeiro, tenta jogar o naipe do contrato se for de naipe
+    if (contract.type === 'suit' && contract.suit) {
+      const suitCards = hand.filter(c => c.suit === contract.suit);
+      if (suitCards.length > 0) {
+        cardToPlay = suitCards[0];
+        cardIndex = hand.indexOf(cardToPlay);
+      }
+    }
+    if (!cardToPlay) {
+      cardToPlay = hand[hand.length - 1]; // Joga a menor
+      cardIndex = hand.length - 1;
+    }
+  } else {
+    const leadSuit = currentTrick[0].suit;
+    const suitCards = hand.filter(c => c.suit === leadSuit);
+    
+    if (suitCards.length > 0) {
+      cardToPlay = suitCards[0];
+      cardIndex = hand.indexOf(cardToPlay);
+    } else {
+      cardToPlay = hand[hand.length - 1];
+      cardIndex = hand.length - 1;
+    }
+  }
+  
+  hand.splice(cardIndex, 1);
+  currentTrick.push(cardToPlay);
+  
+  renderGame();
+  playBeep(400, 'sine', 0.1);
+  
+  if (currentTrick.length === 4) {
+    resolveTrick();
+  } else {
+    currentTurn = (currentTurn + 1) % 4;
+    updateTurnIndicator();
+  }
+}
+
+function resolveTrick() {
+  // Determina o vencedor da rodada (maior carta do naipe que começou)
+  const leadSuit = currentTrick[0].suit;
+  let winner = -1;
+  let maxValue = -1;
+  
+  currentTrick.forEach((card, index) => {
+    if (card.suit === leadSuit && card.value > maxValue) {
+      maxValue = card.value;
+      winner = index;
+    }
+  });
+  
+  // O vencedor é o índice na ordem de turno
+  // 0 = Jogador, 1, 2, 3 = Oponentes
+  // A ordem de turno é: quem começou + 1, +2, +3
+  
+  // Simplificação: o vencedor é quem jogou a carta mais alta
+  // Precisamos mapear o índice na rodada para o jogador
+  
+  // Vamos assumir que a ordem de turno é 0, 1, 2, 3
+  // E o vencedor é o índice que corresponde ao jogador
+  
+  // Limpa a mesa após um tempo
+  setTimeout(() => {
+    currentTrick = [];
+    
+    // Verifica se acabou o jogo
+    if (playerHand.length === 0) {
+      endGame();
+      return;
+    }
+    
+    // O vencedor começa a próxima rodada
+    // Simplificação: jogador sempre começa
+    currentTurn = 0;
+    renderGame();
+    updateTurnIndicator();
+  }, 1000);
+}
+
+function endGame() {
+  isGameOver = true;
+  clearTimeout(aiTimer);
+  
+  // Calcula pontuação (simplificado: quantas cartas o jogador pegou)
+  const score = 13 - playerHand.length;
+  
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('pasterryTrixHighScore', highScore);
+    hudHighScore.textContent = highScore;
+  }
+  
+  rankings.push({ name: playerName, score: score });
+  rankings.sort((a, b) => b.score - a.score);
+  rankings = rankings.slice(0, 10);
+  localStorage.setItem('pasterryTrixRankings', JSON.stringify(rankings));
+  
+  rankingList.innerHTML = rankings.map((r, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+    return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
+  }).join('');
+  
+  rankingBox.style.display = 'block';
+  
+  overlayTitle.textContent = "FIM DE JOGO!";
+  overlayIcon.textContent = "🏆";
+  overlayText.innerHTML = `Você fez <b>${score}</b> pontos, ${playerName}!`;
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+// ==========================================
+// INICIALIZAÇÃO DO JOGO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryTrixName', playerName);
+  playBeep(600, 'sine', 0.1);
+  startGameScreen();
+});
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "Pasterry Trix";
+  overlayIcon.textContent = "🃏";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Jogue contra 3 oponentes!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  startBtn.onclick = () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    resetGame();
+  };
+}
+
+// BOTÕES DE AÇÃO
+document.getElementById('resetGameBtn').addEventListener('click', () => {
+  if (confirm("Iniciar nova partida?")) {
+    resetGame();
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', () => {
+  if (confirm("Voltar ao menu inicial?")) {
+    gameScreen.classList.remove('active');
+    welcomeScreen.classList.add('active');
+    clearTimeout(aiTimer);
+  }
+});
+
+// Inicializa o app
+initApp();
+</script>
+</body>
+</html>

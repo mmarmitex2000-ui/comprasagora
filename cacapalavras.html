@@ -79,7 +79,10 @@
     margin-bottom: 10px;
   }
 
-  /* Menu de Níveis */
+  /* Menu de Níveis (Scrollable para 30) */
+  .menu-container {
+    width: 100%; max-height: 75vh; overflow-y: auto; padding-bottom: 20px;
+  }
   .level-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
     width: 100%; margin-top: 10px;
@@ -95,9 +98,9 @@
   .level-btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
   .level-btn.locked { background: #ddd; color: #888; cursor: not-allowed; box-shadow: 0 4px 0 #bbb; }
   .level-btn.completed { background: var(--verde); color: #fff; }
-  .level-btn span { font-size: 0.6rem; font-weight: normal; margin-top: 2px;}
+  .level-btn span { font-size: 0.5rem; font-weight: normal; margin-top: 2px; text-align:center; padding: 0 2px;}
   .level-btn .crown {
-    position: absolute; top: -10px; right: -5px; font-size: 1.2rem;
+    position: absolute; top: -8px; right: -5px; font-size: 1.1rem;
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
   }
 
@@ -219,8 +222,10 @@
 
 <!-- TELA 2: MENU DE NÍVEIS -->
 <div class="screen" id="menuScreen">
-  <h2 style="color: var(--marrom); font-size: 1.2rem; margin-bottom: 10px;">Escolha o Nível</h2>
-  <div class="level-grid" id="levelGrid"></div>
+  <h2 style="color: var(--marrom); font-size: 1.2rem; margin-bottom: 5px;">Escolha o Nível</h2>
+  <div class="menu-container">
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
 </div>
 
 <!-- TELA 3: O JOGO -->
@@ -273,19 +278,44 @@
 
 <script>
 // ==========================================
-// CONFIGURAÇÃO DOS NÍVEIS
+// CONFIGURAÇÃO DOS 30 NÍVEIS (PALAVRAS CURTAS)
 // ==========================================
 const levelsConfig = [
+  // FÁCEIS (1 a 10)
   { id: 1, theme: "Clássicos", size: 10, words: ["PASTERRY", "CARNE", "QUEIJO", "PIZZA", "FRANGO"] },
   { id: 2, theme: "Da Horta", size: 10, words: ["PASTERRY", "PALMITO", "MILHO", "ERVILHA", "CATUPIRY"] },
   { id: 3, theme: "Nobres", size: 11, words: ["PASTERRY", "CAMARAO", "BACON", "CALABRESA", "FILE"] },
   { id: 4, theme: "Doces", size: 11, words: ["PASTERRY", "CHOCOLATE", "PRESTIGIO", "MORANGO", "ROMEU"] },
-  { id: 5, theme: "Bebidas", size: 11, words: ["PASTERRY", "REFRIGERANTE", "CALDO", "SUCO", "AGUA"] },
+  { id: 5, theme: "Bebidas", size: 11, words: ["PASTERRY", "CALDO", "SUCO", "AGUA", "VINHO"] },
   { id: 6, theme: "Combos", size: 12, words: ["PASTERRY", "PASTEL", "REFRESCO", "PORCAO", "BATATA"] },
   { id: 7, theme: "Apimentados", size: 12, words: ["PASTERRY", "PIMENTA", "MEXICANO", "JALAPENO", "FOGO"] },
   { id: 8, theme: "Gourmet", size: 12, words: ["PASTERRY", "TRUFA", "CHEDDAR", "PARMA", "RUCULA"] },
   { id: 9, theme: "Vegetarianos", size: 13, words: ["PASTERRY", "BERINJELA", "ABOBRINHA", "TOFU", "ESPINAFRE"] },
-  { id: 10, theme: "A Lenda", size: 13, words: ["PASTERRY", "MEGA", "TUDO", "ESPECIAL", "SUPREMO"] }
+  { id: 10, theme: "A Lenda", size: 13, words: ["PASTERRY", "MEGA", "TUDO", "ESPECIAL", "SUPREMO"] },
+  
+  // MÉDIOS (11 a 20)
+  { id: 11, theme: "Massas", size: 10, words: ["PASTERRY", "LASANHA", "MACARRAO", "NHOQUE", "RAVIOLI"] },
+  { id: 12, theme: "Salgados", size: 10, words: ["PASTERRY", "COXINHA", "RISOLES", "CROQUETE", "BOLINHA"] },
+  { id: 13, theme: "Bebidas Finas", size: 11, words: ["PASTERRY", "CERVEJA", "CAIPIRINHA", "WHISKY", "VODKA"] },
+  { id: 14, theme: "Churrasco", size: 11, words: ["PASTERRY", "PICANHA", "COSTELA", "LINGUICA", "FRANGO"] },
+  { id: 15, theme: "Oriental", size: 11, words: ["PASTERRY", "SUSHI", "TEMAKI", "YAKISSOBA", "GUIOZA"] },
+  { id: 16, theme: "Lanches", size: 12, words: ["PASTERRY", "HAMBURGER", "XIS", "BAURU", "HOTDOG"] },
+  { id: 17, theme: "Sobremesas", size: 12, words: ["PASTERRY", "PUDIM", "MOUSSE", "SORVETE", "BOLO"] },
+  { id: 18, theme: "Frutas", size: 12, words: ["PASTERRY", "ABACAXI", "MELANCIA", "MORANGO", "UVA"] },
+  { id: 19, theme: "Temperos", size: 13, words: ["PASTERRY", "OREGANO", "MANJERICAO", "SAISINHA", "PIMENTA"] },
+  { id: 20, theme: "A Mesa", size: 13, words: ["PASTERRY", "GARFO", "FACA", "COLHER", "PRATO"] },
+
+  // DIFÍCEIS (21 a 30)
+  { id: 21, theme: "Cozinha", size: 10, words: ["PASTERRY", "PANELA", "FRIGIDEIRA", "BATEDEIRA", "FORNO"] },
+  { id: 22, theme: "Ingredientes", size: 10, words: ["PASTERRY", "FERMENTO", "MANTEIGA", "CREME", "LEITE"] },
+  { id: 23, theme: "Pratos Típicos", size: 11, words: ["PASTERRY", "FEIJOADA", "MOQUECA", "BAIAO", "TAPIOCA"] },
+  { id: 24, theme: "Fast Food", size: 11, words: ["PASTERRY", "BATATA", "NUGGETS", "MILKSHAKE", "PIZZA"] },
+  { id: 25, theme: "Pastelaria", size: 11, words: ["PASTERRY", "MASSA", "RECHEIO", "FRITURA", "DELIVERY"] },
+  { id: 26, theme: "Doces Finos", size: 12, words: ["PASTERRY", "BRIGADEIRO", "BEIJINHO", "QUINDIM", "PACOCA"] },
+  { id: 27, theme: "Bebidas Geladas", size: 12, words: ["PASTERRY", "SUCO", "AGUA", "ENERGETICO", "ISOTONICO"] },
+  { id: 28, theme: "Café da Manhã", size: 12, words: ["PASTERRY", "PAO", "QUEIJO", "PRESUNTO", "CAFE"] },
+  { id: 29, theme: "Mundial", size: 13, words: ["PASTERRY", "LASANHA", "SUSHI", "HAMBURGER", "TACO"] },
+  { id: 30, theme: "Lenda Suprema", size: 13, words: ["PASTERRY", "DELIVERY", "PASTELARIA", "MOTORISTA", "CLIENTE"] }
 ];
 
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -300,7 +330,6 @@ const directions = [
 let playerName = localStorage.getItem('pasterryCacaName') || '';
 let unlockedLevel = parseInt(localStorage.getItem('pasterryCacaUnlocked') || '0', 10);
 let completedLevels = JSON.parse(localStorage.getItem('pasterryCacaCompleted') || '[]');
-// Recordes: um array de objetos { level: 1, time: 45, name: "João" }
 let rankings = JSON.parse(localStorage.getItem('pasterryCacaRankings') || '[]');
 
 let currentLevelIndex = 0;
@@ -339,7 +368,6 @@ const gameContainer = document.getElementById('game-container');
 // ==========================================
 function initApp() {
   if (playerName) {
-    // Se já tem nome salvo, pula a tela de boas-vindas
     inputName.value = playerName;
     showMenu();
   } else {
@@ -385,7 +413,6 @@ function renderMenu() {
     if (isLocked) btn.classList.add('locked');
     else if (isCompleted) btn.classList.add('completed');
     
-    // Verifica se o jogador atual é o dono do recorde neste nível
     const levelRecord = rankings.find(r => r.level === index && r.name === playerName);
     let crownHtml = '';
     if (levelRecord && isCompleted) {
@@ -419,6 +446,7 @@ function startLevel(index) {
   gameScreen.classList.add('active');
   overlay.classList.add('hidden');
   
+  // GARANTE QUE AS PALAVRAS SEJAM SEMPRE DIFERENTES E EMBARALHADAS
   generateGrid(config.size, config.words);
   renderWordList();
   startTimer();
@@ -432,12 +460,7 @@ function generateGrid(size, words) {
   selectedCells = [];
   
   let shuffledWords = [...words].sort(() => Math.random() - 0.5);
-  const pasterryIndex = shuffledWords.indexOf("PASTERRY");
-  if (pasterryIndex > -1) {
-    shuffledWords.splice(pasterryIndex, 1);
-    shuffledWords.unshift("PASTERRY");
-  }
-
+  
   shuffledWords.forEach(word => {
     tryPlaceWord(word, size);
   });
@@ -669,7 +692,7 @@ hintBtn.addEventListener('click', () => {
 });
 
 // ==========================================
-// TEMPO E VITÓRIA (COM SISTEMA DE RANKING)
+// TEMPO E VITÓRIA
 // ==========================================
 function startTimer() {
   startTime = Date.now();
@@ -690,38 +713,30 @@ function winLevel() {
   
   const config = levelsConfig[currentLevelIndex];
   
-  // 1. Salva Nível Completo
   if (!completedLevels.includes(currentLevelIndex)) {
     completedLevels.push(currentLevelIndex);
     localStorage.setItem('pasterryCacaCompleted', JSON.stringify(completedLevels));
   }
-  // 2. Desbloqueia Próximo
   if (currentLevelIndex >= unlockedLevel && currentLevelIndex < levelsConfig.length - 1) {
     unlockedLevel = currentLevelIndex + 1;
     localStorage.setItem('pasterryCacaUnlocked', unlockedLevel);
   }
 
-  // 3. SALVA NO RANKING
   let isNewRecord = false;
-  
-  // Verifica se o jogador já tem um tempo salvo neste nível
   const existingRecordIndex = rankings.findIndex(r => r.level === currentLevelIndex && r.name === playerName);
   
   if (existingRecordIndex > -1) {
-    // Se já tem, só atualiza se o novo tempo for menor
     if (currentSeconds < rankings[existingRecordIndex].time) {
       rankings[existingRecordIndex].time = currentSeconds;
       isNewRecord = true;
     }
   } else {
-    // Se não tem, cria um novo registro
     rankings.push({ level: currentLevelIndex, name: playerName, time: currentSeconds });
     isNewRecord = true;
   }
   
   localStorage.setItem('pasterryCacaRankings', JSON.stringify(rankings));
 
-  // 4. Prepara a Tela Final
   const isLastLevel = currentLevelIndex === levelsConfig.length - 1;
   
   document.getElementById('overlayIcon').textContent = isLastLevel ? '👑' : '🎉';
@@ -733,7 +748,6 @@ function winLevel() {
     ? `Incrível, <b>${playerName}</b>! Você completou a Saga Pasterry em ${hudTimer.textContent}.<br>Você é oficialmente um Mestre dos Recheios!` 
     : `Mandou bem, <b>${playerName}</b>! Você encontrou tudo em ${hudTimer.textContent}.${recordMsg}`;
 
-  // 5. Monta o Ranking Top 3 deste nível
   const levelRanks = rankings.filter(r => r.level === currentLevelIndex)
                              .sort((a, b) => a.time - b.time)
                              .slice(0, 3);
@@ -768,7 +782,7 @@ document.getElementById('nextLevelBtn').addEventListener('click', () => {
 document.getElementById('backToMenuBtn').addEventListener('click', () => {
   gameScreen.classList.remove('active');
   menuScreen.classList.add('active');
-  renderMenu(); // Atualiza para mostrar as coroas
+  renderMenu();
 });
 
 document.getElementById('exitBtn').addEventListener('click', () => {

@@ -106,6 +106,16 @@
   .card-forca { border-color: #7950f2; box-shadow: 0 6px 0 #7950f2; }
   .card-snake { border-color: #e8590c; box-shadow: 0 6px 0 #e8590c; }
   .card-pastel { border-color: #e64980; box-shadow: 0 6px 0 #e64980; }
+  
+  /* NOVAS CORES PARA OS JOGOS ADICIONAIS */
+  .card-ninja { border-color: #f76707; box-shadow: 0 6px 0 #f76707; }
+  .card-runner { border-color: #0ca678; box-shadow: 0 6px 0 #0ca678; }
+  .card-tower { border-color: #ae3ec9; box-shadow: 0 6px 0 #ae3ec9; }
+  .card-2048 { border-color: #f59f00; box-shadow: 0 6px 0 #f59f00; }
+  .card-dama { border-color: #495057; box-shadow: 0 6px 0 #495057; }
+  .card-jigsaw { border-color: #1098ad; box-shadow: 0 6px 0 #1098ad; }
+  .card-trix { border-color: #d6336c; box-shadow: 0 6px 0 #d6336c; }
+  .card-21 { border-color: #2b8a3e; box-shadow: 0 6px 0 #2b8a3e; }
 
   .footer-text {
     margin-top: 30px;
@@ -145,7 +155,7 @@
     <div class="game-desc">Estoure as bolhas</div>
   </a>
 
-  <!-- Jogo 2: Pasterry Memory (Jogo da Memória) -->
+  <!-- Jogo 2: Jogo da Memória -->
   <a href="jogo-de-memoria.html" class="game-card card-memoria">
     <div class="game-icon">🧠</div>
     <div class="game-title">Jogo da Memória</div>
@@ -166,7 +176,7 @@
     <div class="game-desc">Adivinhe a palavra</div>
   </a>
 
-  <!-- Jogo 5: Pasterry Snake (O arquivo se chama skack.html) -->
+  <!-- Jogo 5: Pasterry Snake -->
   <a href="skack.html" class="game-card card-snake">
     <div class="game-icon">🐍</div>
     <div class="game-title">Pasterry Snake</div>
@@ -178,6 +188,62 @@
     <div class="game-icon">🍽️</div>
     <div class="game-title">Pegue o Pastel</div>
     <div class="game-desc">A jornada do delivery</div>
+  </a>
+
+  <!-- Jogo 7: Pasterry Ninja -->
+  <a href="pasterry-ninja.html" class="game-card card-ninja">
+    <div class="game-icon">🥷</div>
+    <div class="game-title">Pasterry Ninja</div>
+    <div class="game-desc">Corte os pastéis</div>
+  </a>
+
+  <!-- Jogo 8: Pasterry Runner -->
+  <a href="pasterry-runner.html" class="game-card card-runner">
+    <div class="game-icon">🏃</div>
+    <div class="game-title">Pasterry Runner</div>
+    <div class="game-desc">A corrida do pastel</div>
+  </a>
+
+  <!-- Jogo 9: Pasterry Tower -->
+  <a href="pasterry-tower.html" class="game-card card-tower">
+    <div class="game-icon">🏗️</div>
+    <div class="game-title">Pasterry Tower</div>
+    <div class="game-desc">Empilhe os pastéis</div>
+  </a>
+
+  <!-- Jogo 10: Pasterry 2048 -->
+  <a href="pasterry-2048.html" class="game-card card-2048">
+    <div class="game-icon">🔢</div>
+    <div class="game-title">Pasterry 2048</div>
+    <div class="game-desc">Junte os recheios</div>
+  </a>
+
+  <!-- Jogo 11: Pasterry Dama -->
+  <a href="pasterry-dama.html" class="game-card card-dama">
+    <div class="game-icon">♟️</div>
+    <div class="game-title">Pasterry Dama</div>
+    <div class="game-desc">Jogo de damas</div>
+  </a>
+
+  <!-- Jogo 12: Pasterry Jigsaw -->
+  <a href="pasterry-jigsaw.html" class="game-card card-jigsaw">
+    <div class="game-icon">🧩</div>
+    <div class="game-title">Pasterry Jigsaw</div>
+    <div class="game-desc">Quebra-cabeça</div>
+  </a>
+
+  <!-- Jogo 13: Pasterry Trix -->
+  <a href="pasterry-trix.html" class="game-card card-trix">
+    <div class="game-icon">🃏</div>
+    <div class="game-title">Pasterry Trix</div>
+    <div class="game-desc">Jogo de cartas</div>
+  </a>
+
+  <!-- Jogo 14: Pasterry 21 -->
+  <a href="pasterry-21.html" class="game-card card-21">
+    <div class="game-icon">♠️</div>
+    <div class="game-title">Pasterry 21</div>
+    <div class="game-desc">Blackjack</div>
   </a>
 
 </div>
@@ -192,7 +258,16 @@
   const savedName = localStorage.getItem('pasterryBubbleName') || 
                     localStorage.getItem('pasterryCacaName') || 
                     localStorage.getItem('pasterryForcaName') || 
-                    localStorage.getItem('pasterrySnakeName') || '';
+                    localStorage.getItem('pasterrySnakeName') || 
+                    localStorage.getItem('pasterryNinjaName') || 
+                    localStorage.getItem('pasterryRunnerName') || 
+                    localStorage.getItem('pasterryTowerName') || 
+                    localStorage.getItem('pasterry2048Name') || 
+                    localStorage.getItem('pasterryDamaName') || 
+                    localStorage.getItem('pasterryJigsawName') || 
+                    localStorage.getItem('pasterryTrixName') || 
+                    localStorage.getItem('pasterry21Name') || 
+                    localStorage.getItem('pasterryPastelName') || '';
 
   const playerTag = document.getElementById('playerTag');
   const playerTagName = document.getElementById('playerTagName');

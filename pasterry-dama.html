@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pasterry Dama - Jogo de Damas</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  
+  :root {
+    --amarelo: #fcd116;
+    --laranja: #e8590c;
+    --marrom: #4a0e14;
+    --verde: #8cc63f;
+    --vermelho: #e03131;
+    --azul: #1c7ed6;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--amarelo);
+    background-image: radial-gradient(var(--laranja) 1px, transparent 1px);
+    background-size: 20px 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px; color: var(--marrom); overflow: hidden;
+  }
+
+  /* BOTÃO VOLTAR AO MENU */
+  .btn-back {
+    position: fixed; top: 15px; left: 15px;
+    background: var(--marrom); color: var(--amarelo);
+    text-decoration: none; padding: 8px 15px;
+    border-radius: 20px; font-weight: 800; font-size: 0.8rem;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    z-index: 100; transition: transform 0.1s;
+  }
+  .btn-back:active { transform: scale(0.95); }
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 10px; margin-top: 40px;
+    background: var(--marrom); padding: 5px 15px; border-radius: 15px;
+    border: 3px solid var(--amarelo); box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-container {
+    width: 35px; height: 35px; border-radius: 50%; background: #fff;
+    overflow: hidden; border: 2px solid var(--amarelo);
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-container img { width: 100%; height: 100%; object-fit: cover; }
+  .brand-name { font-family: 'Brush Script MT', cursive; font-size: 1.8rem; color: var(--amarelo); margin-top: 5px;}
+  
+  .player-tag {
+    color: var(--amarelo); font-size: 0.8rem; font-weight: 800;
+    text-transform: uppercase; display: flex; flex-direction: column; align-items: flex-end;
+  }
+  .player-tag span { font-size: 0.6rem; font-weight: normal; color: #aaa;}
+
+  /* TELAS */
+  .screen {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; max-width: 400px;
+  }
+  .screen.active { display: flex; }
+
+  .welcome-box {
+    background: #fff; border: 4px solid var(--marrom); border-radius: 15px;
+    padding: 20px; text-align: center; width: 100%; margin-top: 20px;
+    box-shadow: 0 8px 0 var(--marrom);
+  }
+  .welcome-box h2 { font-size: 1.3rem; color: var(--laranja); margin-bottom: 10px;}
+  .name-input {
+    width: 100%; padding: 12px; font-size: 1.1rem; text-align: center;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    font-weight: 800; color: var(--marrom); outline: none; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* MENU DE MODO DE JOGO */
+  .mode-selector {
+    display: flex; gap: 10px; width: 100%; margin-bottom: 15px;
+  }
+  .mode-btn {
+    flex: 1; padding: 10px; background: #ddd; border: 3px solid var(--marrom);
+    border-radius: 10px; font-weight: 800; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: var(--verde); color: #fff;
+  }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 400px; margin-bottom: 5px;
+    background: #fff; padding: 5px 12px; border-radius: 10px;
+    border: 3px solid var(--marrom); font-weight: 900; font-size: 0.9rem;
+    box-shadow: 0 4px 0 var(--marrom); z-index: 10;
+  }
+  .hud-item { display: flex; flex-direction: column; align-items: center; }
+  .hud-item span { font-size: 0.6rem; color: #888; }
+  .hud-item strong { font-size: 1rem; color: var(--laranja); }
+
+  /* BOTÕES DE AÇÃO DENTRO DO JOGO */
+  .game-actions {
+    display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 10px;
+  }
+  .action-btn {
+    flex: 1; padding: 8px; font-size: 0.8rem; font-weight: 800;
+    background: var(--azul); color: #fff;
+    border: 3px solid var(--marrom); border-radius: 10px;
+    cursor: pointer; box-shadow: 0 3px 0 var(--marrom);
+    transition: transform 0.1s;
+  }
+  .action-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--marrom); }
+  .action-btn.reset { background: var(--vermelho); }
+  .action-btn.menu { background: #6c757d; }
+
+  #game-container {
+    position: relative; background: #fff;
+    border: 4px solid var(--marrom); border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100%; max-width: 400px;
+    display: flex; justify-content: center; align-items: center;
+    padding: 10px;
+  }
+  
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 4px solid var(--marrom);
+    border-radius: 8px;
+    overflow: hidden;
+    /* Impede o scroll da página enquanto arrasta */
+    touch-action: none;
+  }
+  
+  .square {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.1s;
+    position: relative; /* Para a peça arrastada */
+  }
+  
+  .square.light { background: #f5c542; }
+  .square.dark { background: #4a0e14; }
+  
+  .square.selected { box-shadow: inset 0 0 0 4px var(--verde); }
+  .square.valid-move { box-shadow: inset 0 0 0 4px var(--azul); }
+  
+  /* =========================================
+     ESTILO DAS PEÇAS EM 3D
+     ========================================= */
+  .piece {
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 
+      0 4px 0 rgba(0,0,0,0.4),
+      0 8px 8px rgba(0,0,0,0.3),
+      inset 0 -4px 8px rgba(0,0,0,0.3),
+      inset 0 4px 8px rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  
+  .piece:active {
+    transform: translateY(2px);
+    box-shadow: 
+      0 2px 0 rgba(0,0,0,0.4),
+      0 4px 4px rgba(0,0,0,0.3),
+      inset 0 -2px 4px rgba(0,0,0,0.3),
+      inset 0 2px 4px rgba(255,255,255,0.4);
+  }
+  
+  .piece img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: brightness(1.1) contrast(1.1);
+    pointer-events: none; /* Impede que a imagem bloqueie o toque */
+  }
+  
+  .piece.player { 
+    background: linear-gradient(145deg, #ff4d4d, #c92a2a); 
+    border: 3px solid #000;
+  }
+  
+  .piece.enemy { 
+    background: linear-gradient(145deg, #4dabf7, #1864ab); 
+    border: 3px solid #fff;
+  }
+  
+  .piece.king::after {
+    content: '👑';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    z-index: 2;
+    transform: rotate(15deg);
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(255, 253, 248, 0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 20px; text-align: center; z-index: 10;
+    overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 { font-size: 1.5rem; color: var(--laranja); margin-bottom: 5px;}
+  .overlay p { font-size: 0.95rem; line-height: 1.5; }
+  
+  .trophy { font-size: 3rem; animation: float 2s infinite alternate; margin-bottom: 10px; display: inline-block; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .btn {
+    padding: 10px 20px; font-size: 0.9rem; font-weight: 800;
+    background: var(--laranja); color: var(--amarelo);
+    border: none; border-radius: 20px; cursor: pointer;
+    box-shadow: 0 4px 0 var(--marrom); transition: transform 0.1s; margin-top: 10px;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--marrom); }
+
+  .ranking-box {
+    background: #fff8e1; border: 2px solid var(--laranja);
+    border-radius: 10px; padding: 8px; width: 100%; margin-top: 10px; font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .ranking-box h3 { font-size: 0.8rem; color: var(--marrom); margin-bottom: 4px; text-transform: uppercase; }
+  .rank-line { display: flex; justify-content: space-between; border-bottom: 1px dashed #ffd8a8; padding: 4px 0; font-weight: 700;}
+  .rank-line:last-child { border: none; }
+
+  .controls-hint {
+    margin-top: 15px; font-size: 0.8rem; color: #888; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- BOTÃO DE VOLTAR AO INDEX -->
+<a href="index.html" class="btn-back">🏠 Início</a>
+
+<div class="header-top">
+  <div class="logo-area">
+    <div class="logo-container">
+      <img src="img/logo.jpg" onerror="this.style.display='none'; this.parentElement.innerHTML='🥟';">
+    </div>
+    <div class="brand-name">Pasterry</div>
+  </div>
+  <div class="player-tag" id="playerTag" style="display:none;">
+    <span>JOGADOR</span>
+    <div id="playerTagName">-</div>
+  </div>
+</div>
+
+<!-- TELA 1: NOME E MODO -->
+<div class="screen active" id="welcomeScreen">
+  <div class="welcome-box">
+    <h2>Bem-vindo ao Pasterry Dama!</h2>
+    <p style="font-size:0.85rem; margin-bottom:10px;">Digite seu nome e escolha o modo.</p>
+    <input type="text" id="inputName" class="name-input" placeholder="Seu Nome" maxlength="10">
+    
+    <div class="mode-selector">
+      <button class="mode-btn active" id="mode1P" onclick="setGameMode(1)">1 Player (vs CPU)</button>
+      <button class="mode-btn" id="mode2P" onclick="setGameMode(2)">2 Players (Local)</button>
+    </div>
+
+    <button class="btn" id="startJourneyBtn" style="width: 100%;">Entrar no Jogo</button>
+  </div>
+</div>
+
+<!-- TELA 2: O JOGO -->
+<div class="screen" id="gameScreen">
+  <div class="hud">
+    <div class="hud-item">
+      <span>SUAS PEÇAS</span>
+      <strong id="hudScore">12</strong>
+    </div>
+    <div class="hud-item">
+      <span>VEZ DE</span>
+      <strong id="hudTurn">Vermelho</strong>
+    </div>
+    <div class="hud-item">
+      <span>RECORDE</span>
+      <strong id="hudHighScore">12</strong>
+    </div>
+  </div>
+
+  <div class="game-actions">
+    <button class="action-btn reset" id="resetGameBtn">🔄 Reiniciar</button>
+    <button class="action-btn menu" id="backToMenuBtn">⬅️ Menu</button>
+  </div>
+
+  <div id="game-container">
+    <div id="board"></div>
+    
+    <div class="overlay" id="overlay">
+      <div class="trophy" id="overlayIcon">♟️</div>
+      <h2 id="overlayTitle">Pasterry Dama</h2>
+      <p id="overlayText">Capture todas as peças do adversário!</p>
+      
+      <div class="ranking-box" id="rankingBox" style="display:none;">
+        <h3>🏆 Top 10 Jogadores</h3>
+        <div id="rankingList"></div>
+      </div>
+
+      <button class="btn" id="startBtn">Jogar</button>
+    </div>
+  </div>
+
+  <div class="controls-hint">
+    Toque ou arraste a peça para o destino.
+  </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURAÇÃO INICIAL
+// ==========================================
+const boardEl = document.getElementById('board');
+const hudScore = document.getElementById('hudScore');
+const hudTurn = document.getElementById('hudTurn');
+const hudHighScore = document.getElementById('hudHighScore');
+const overlay = document.getElementById('overlay');
+const overlayIcon = document.getElementById('overlayIcon');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const rankingBox = document.getElementById('rankingBox');
+const rankingList = document.getElementById('rankingList');
+const startBtn = document.getElementById('startBtn');
+
+// Telas
+const welcomeScreen = document.getElementById('welcomeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const inputName = document.getElementById('inputName');
+const playerTag = document.getElementById('playerTag');
+const playerTagName = document.getElementById('playerTagName');
+
+let playerName = localStorage.getItem('pasterryDamaName') || '';
+let highScore = parseInt(localStorage.getItem('pasterryDamaHighScore') || '12', 10);
+hudHighScore.textContent = highScore;
+
+let rankings = JSON.parse(localStorage.getItem('pasterryDamaRankings') || '[]');
+
+// ==========================================
+// ESTADO DO JOGO
+// ==========================================
+const BOARD_SIZE = 8;
+let board = [];
+let selectedPiece = null;
+let validMoves = [];
+let player1Pieces = 12;
+let player2Pieces = 12;
+let isGameOver = false;
+let gameMode = 1;
+let currentTurn = 'player';
+let aiTimer = null;
+let isMultiCapture = false;
+
+// Variáveis para Drag and Drop
+let isDragging = false;
+let dragStartPos = null;
+
+// ==========================================
+// SELEÇÃO DE MODO
+// ==========================================
+function setGameMode(mode) {
+  gameMode = mode;
+  document.getElementById('mode1P').classList.remove('active');
+  document.getElementById('mode2P').classList.remove('active');
+  
+  if (mode === 1) {
+    document.getElementById('mode1P').classList.add('active');
+  } else {
+    document.getElementById('mode2P').classList.add('active');
+  }
+}
+
+// ==========================================
+// LÓGICA DO JOGO
+// ==========================================
+function resetGame() {
+  board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null));
+  selectedPiece = null;
+  validMoves = [];
+  player1Pieces = 12;
+  player2Pieces = 12;
+  isGameOver = false;
+  currentTurn = 'player';
+  isMultiCapture = false;
+  isDragging = false;
+  
+  hudScore.textContent = player1Pieces;
+  hudTurn.textContent = "Vermelho";
+  hudTurn.style.color = 'var(--vermelho)';
+  overlay.classList.add('hidden');
+  
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if ((r + c) % 2 === 1) {
+        if (r < 3) {
+          board[r][c] = { type: 'enemy', isKing: false };
+        } else if (r > 4) {
+          board[r][c] = { type: 'player', isKing: false };
+        }
+      }
+    }
+  }
+  
+  renderBoard();
+}
+
+function renderBoard() {
+  boardEl.innerHTML = '';
+  
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const square = document.createElement('div');
+      square.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+      square.dataset.r = r;
+      square.dataset.c = c;
+      
+      if (selectedPiece && selectedPiece.r === r && selectedPiece.c === c) {
+        square.classList.add('selected');
+      }
+      
+      if (validMoves.some(m => m.r === r && m.c === c)) {
+        square.classList.add('valid-move');
+      }
+      
+      if (board[r][c]) {
+        const piece = document.createElement('div');
+        piece.className = `piece ${board[r][c].type} ${board[r][c].isKing ? 'king' : ''}`;
+        piece.innerHTML = `<img src="img/logo.jpg" alt="Peça">`;
+        
+        // Eventos de toque para arrastar
+        piece.addEventListener('touchstart', (e) => handleTouchStart(e, r, c), { passive: false });
+        piece.addEventListener('mousedown', (e) => handleMouseDown(e, r, c));
+        
+        square.appendChild(piece);
+      }
+      
+      // Eventos no quadrado
+      square.addEventListener('click', () => handleSquareClick(r, c));
+      square.addEventListener('touchmove', (e) => handleTouchMove(e), { passive: false });
+      square.addEventListener('touchend', (e) => handleTouchEnd(e, r, c), { passive: false });
+      square.addEventListener('mouseup', (e) => handleMouseUp(e, r, c));
+      
+      boardEl.appendChild(square);
+    }
+  }
+}
+
+// ==========================================
+// DRAG AND DROP (ARRASTAR)
+// ==========================================
+function handleTouchStart(e, r, c) {
+  if (isGameOver) return;
+  if (gameMode === 1 && currentTurn !== 'player') return;
+  
+  const piece = board[r][c];
+  if (piece && piece.type === currentTurn) {
+    e.preventDefault();
+    isDragging = true;
+    dragStartPos = { r, c };
+    selectedPiece = { r, c };
+    validMoves = getValidMoves(r, c);
+    renderBoard();
+  }
+}
+
+function handleTouchMove(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+}
+
+function handleTouchEnd(e, r, c) {
+  if (!isDragging) return;
+  e.preventDefault();
+  isDragging = false;
+  
+  if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
+    const move = validMoves.find(m => m.r === r && m.c === c);
+    makeMove(selectedPiece.r, selectedPiece.c, r, c, move);
+    
+    if (move && move.capture) {
+      const nextMoves = getValidMoves(r, c).filter(m => m.capture);
+      if (nextMoves.length > 0) {
+        isMultiCapture = true;
+        selectedPiece = { r, c };
+        validMoves = nextMoves;
+        renderBoard();
+        return;
+      }
+    }
+    
+    selectedPiece = null;
+    validMoves = [];
+    renderBoard();
+    checkVictory();
+    
+    if (!isGameOver) {
+      currentTurn = currentTurn === 'player' ? 'enemy' : 'player';
+      hudTurn.textContent = currentTurn === 'player' ? "Vermelho" : "Azul";
+      hudTurn.style.color = currentTurn === 'player' ? 'var(--vermelho)' : 'var(--azul)';
+      
+      if (gameMode === 1 && currentTurn === 'enemy') {
+        clearTimeout(aiTimer);
+        aiTimer = setTimeout(makeAIMove, 800);
+      }
+    }
+  } else {
+    selectedPiece = null;
+    validMoves = [];
+    renderBoard();
+  }
+}
+
+function handleMouseDown(e, r, c) {
+  if (isGameOver) return;
+  if (gameMode === 1 && currentTurn !== 'player') return;
+  
+  const piece = board[r][c];
+  if (piece && piece.type === currentTurn) {
+    e.preventDefault();
+    isDragging = true;
+    dragStartPos = { r, c };
+    selectedPiece = { r, c };
+    validMoves = getValidMoves(r, c);
+    renderBoard();
+  }
+}
+
+function handleMouseUp(e, r, c) {
+  if (!isDragging) return;
+  e.preventDefault();
+  isDragging = false;
+  
+  if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
+    const move = validMoves.find(m => m.r === r && m.c === c);
+    makeMove(selectedPiece.r, selectedPiece.c, r, c, move);
+    
+    if (move && move.capture) {
+      const nextMoves = getValidMoves(r, c).filter(m => m.capture);
+      if (nextMoves.length > 0) {
+        isMultiCapture = true;
+        selectedPiece = { r, c };
+        validMoves = nextMoves;
+        renderBoard();
+        return;
+      }
+    }
+    
+    selectedPiece = null;
+    validMoves = [];
+    renderBoard();
+    checkVictory();
+    
+    if (!isGameOver) {
+      currentTurn = currentTurn === 'player' ? 'enemy' : 'player';
+      hudTurn.textContent = currentTurn === 'player' ? "Vermelho" : "Azul";
+      hudTurn.style.color = currentTurn === 'player' ? 'var(--vermelho)' : 'var(--azul)';
+      
+      if (gameMode === 1 && currentTurn === 'enemy') {
+        clearTimeout(aiTimer);
+        aiTimer = setTimeout(makeAIMove, 800);
+      }
+    }
+  } else {
+    selectedPiece = null;
+    validMoves = [];
+    renderBoard();
+  }
+}
+
+// ==========================================
+// CLIQUE SIMPLES
+// ==========================================
+function handleSquareClick(r, c) {
+  if (isGameOver) return;
+  if (gameMode === 1 && currentTurn !== 'player') return;
+  if (isDragging) return;
+  
+  const piece = board[r][c];
+  
+  if (isMultiCapture) {
+    if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
+      const move = validMoves.find(m => m.r === r && m.c === c);
+      makeMove(selectedPiece.r, selectedPiece.c, r, c, move);
+      
+      const nextMoves = getValidMoves(r, c).filter(m => m.capture);
+      if (nextMoves.length > 0) {
+        selectedPiece = { r, c };
+        validMoves = nextMoves;
+        renderBoard();
+        return;
+      } else {
+        isMultiCapture = false;
+        selectedPiece = null;
+        validMoves = [];
+        renderBoard();
+        checkVictory();
+        
+        if (!isGameOver) {
+          currentTurn = currentTurn === 'player' ? 'enemy' : 'player';
+          hudTurn.textContent = currentTurn === 'player' ? "Vermelho" : "Azul";
+          hudTurn.style.color = currentTurn === 'player' ? 'var(--vermelho)' : 'var(--azul)';
+          
+          if (gameMode === 1 && currentTurn === 'enemy') {
+            clearTimeout(aiTimer);
+            aiTimer = setTimeout(makeAIMove, 800);
+          }
+        }
+        return;
+      }
+    }
+    return;
+  }
+  
+  if (piece && piece.type === currentTurn) {
+    if (selectedPiece) {
+      selectedPiece = null;
+      validMoves = [];
+    }
+    selectedPiece = { r, c };
+    validMoves = getValidMoves(r, c);
+    renderBoard();
+    return;
+  }
+  
+  if (selectedPiece && validMoves.some(m => m.r === r && m.c === c)) {
+    const move = validMoves.find(m => m.r === r && m.c === c);
+    makeMove(selectedPiece.r, selectedPiece.c, r, c, move);
+    
+    if (move && move.capture) {
+      const nextMoves = getValidMoves(r, c).filter(m => m.capture);
+      if (nextMoves.length > 0) {
+        isMultiCapture = true;
+        selectedPiece = { r, c };
+        validMoves = nextMoves;
+        renderBoard();
+        return;
+      }
+    }
+    
+    selectedPiece = null;
+    validMoves = [];
+    renderBoard();
+    checkVictory();
+    
+    if (!isGameOver) {
+      currentTurn = currentTurn === 'player' ? 'enemy' : 'player';
+      hudTurn.textContent = currentTurn === 'player' ? "Vermelho" : "Azul";
+      hudTurn.style.color = currentTurn === 'player' ? 'var(--vermelho)' : 'var(--azul)';
+      
+      if (gameMode === 1 && currentTurn === 'enemy') {
+        clearTimeout(aiTimer);
+        aiTimer = setTimeout(makeAIMove, 800);
+      }
+    }
+  }
+}
+
+function getValidMoves(r, c) {
+  const moves = [];
+  const piece = board[r][c];
+  if (!piece) return moves;
+  
+  const directions = piece.isKing ? 
+    [[-1, -1], [-1, 1], [1, -1], [1, 1]] : 
+    piece.type === 'player' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+  
+  if (piece.isKing) {
+    for (const [dr, dc] of directions) {
+      let nr = r + dr;
+      let nc = c + dc;
+      let foundEnemy = null;
+      
+      while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+        if (!board[nr][nc]) {
+          if (!foundEnemy) {
+            moves.push({ r: nr, c: nc });
+          } else {
+            moves.push({ r: nr, c: nc, capture: { r: foundEnemy.r, c: foundEnemy.c } });
+          }
+        } else if (board[nr][nc].type !== piece.type) {
+          if (!foundEnemy) {
+            foundEnemy = { r: nr, c: nc };
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+        nr += dr;
+        nc += dc;
+      }
+    }
+  } else {
+    for (const [dr, dc] of directions) {
+      const nr = r + dr;
+      const nc = c + dc;
+      
+      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+        if (!board[nr][nc]) {
+          moves.push({ r: nr, c: nc });
+        } else if (board[nr][nc].type !== piece.type) {
+          const cr = nr + dr;
+          const cc = nc + dc;
+          if (cr >= 0 && cr < BOARD_SIZE && cc >= 0 && cc < BOARD_SIZE && !board[cr][cc]) {
+            moves.push({ r: cr, c: cc, capture: { r: nr, c: nc } });
+          }
+        }
+      }
+    }
+  }
+  
+  return moves;
+}
+
+function makeMove(fromR, fromC, toR, toC, move) {
+  const piece = board[fromR][fromC];
+  
+  if (move && move.capture) {
+    board[move.capture.r][move.capture.c] = null;
+    playBeep(800, 'sine', 0.1);
+  } else {
+    playBeep(600, 'sine', 0.1);
+  }
+  
+  board[toR][toC] = piece;
+  board[fromR][fromC] = null;
+  
+  if (!piece.isKing) {
+    if (piece.type === 'player' && toR === 0) {
+      piece.isKing = true;
+      playBeep(1200, 'sine', 0.2);
+    } else if (piece.type === 'enemy' && toR === BOARD_SIZE - 1) {
+      piece.isKing = true;
+    }
+  }
+}
+
+function makeAIMove() {
+  if (isGameOver || currentTurn !== 'enemy') return;
+  
+  let captures = [];
+  let normalMoves = [];
+  
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (board[r][c] && board[r][c].type === 'enemy') {
+        const moves = getValidMoves(r, c);
+        moves.forEach(m => {
+          if (m.capture) {
+            captures.push({ fromR: r, fromC: c, toR: m.r, toC: m.c, capture: m.capture });
+          } else {
+            normalMoves.push({ fromR: r, fromC: c, toR: m.r, toC: m.c, move: m });
+          }
+        });
+      }
+    }
+  }
+  
+  const moveToMake = captures.length > 0 ? captures[Math.floor(Math.random() * captures.length)] : (normalMoves.length > 0 ? normalMoves[Math.floor(Math.random() * normalMoves.length)] : null);
+  
+  if (moveToMake) {
+    const piece = board[moveToMake.fromR][moveToMake.fromC];
+    
+    if (moveToMake.capture) {
+      board[moveToMake.capture.r][moveToMake.capture.c] = null;
+      playBeep(500, 'sine', 0.1);
+    }
+    
+    board[moveToMake.toR][moveToMake.toC] = piece;
+    board[moveToMake.fromR][moveToMake.fromC] = null;
+    
+    if (!piece.isKing && piece.type === 'enemy' && moveToMake.toR === BOARD_SIZE - 1) {
+      piece.isKing = true;
+    }
+    
+    renderBoard();
+    checkVictory();
+    
+    if (moveToMake.capture) {
+      const nextMoves = getValidMoves(moveToMake.toR, moveToMake.toC).filter(m => m.capture);
+      if (nextMoves.length > 0) {
+        setTimeout(() => {
+          const nextMove = nextMoves[Math.floor(Math.random() * nextMoves.length)];
+          const nextPiece = board[moveToMake.toR][moveToMake.toC];
+          board[nextMove.capture.r][nextMove.capture.c] = null;
+          board[nextMove.r][nextMove.c] = nextPiece;
+          board[moveToMake.toR][moveToMake.toC] = null;
+          
+          if (!nextPiece.isKing && nextPiece.type === 'enemy' && nextMove.r === BOARD_SIZE - 1) {
+            nextPiece.isKing = true;
+          }
+          
+          renderBoard();
+          checkVictory();
+          
+          const furtherMoves = getValidMoves(nextMove.r, nextMove.c).filter(m => m.capture);
+          if (furtherMoves.length > 0) {
+            setTimeout(makeAIMove, 300);
+          } else {
+            if (!isGameOver) {
+              currentTurn = 'player';
+              hudTurn.textContent = "Vermelho";
+              hudTurn.style.color = 'var(--vermelho)';
+            }
+          }
+        }, 400);
+        return;
+      }
+    }
+  }
+  
+  if (!isGameOver) {
+    currentTurn = 'player';
+    hudTurn.textContent = "Vermelho";
+    hudTurn.style.color = 'var(--vermelho)';
+  }
+}
+
+function checkVictory() {
+  let enemyCount = 0;
+  let playerCount = 0;
+  
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (board[r][c]) {
+        if (board[r][c].type === 'enemy') enemyCount++;
+        else playerCount++;
+      }
+    }
+  }
+  
+  player1Pieces = playerCount;
+  player2Pieces = enemyCount;
+  hudScore.textContent = player1Pieces;
+  
+  if (enemyCount === 0) {
+    winGame('player');
+  } else if (playerCount === 0) {
+    winGame('enemy');
+  }
+}
+
+// ==========================================
+// FIM DE JOGO
+// ==========================================
+function winGame(winner) {
+  isGameOver = true;
+  clearTimeout(aiTimer);
+  playBeep(800, 'sine', 0.1);
+  setTimeout(() => playBeep(1000, 'sine', 0.1), 100);
+  setTimeout(() => playBeep(1200, 'sine', 0.1), 200);
+  setTimeout(() => playBeep(1600, 'sine', 0.3), 300);
+  
+  if (gameMode === 1) {
+    if (winner === 'player') {
+      if (player1Pieces > highScore) {
+        highScore = player1Pieces;
+        localStorage.setItem('pasterryDamaHighScore', highScore);
+        hudHighScore.textContent = highScore;
+      }
+      
+      rankings.push({ name: playerName, score: player1Pieces });
+      rankings.sort((a, b) => b.score - a.score);
+      rankings = rankings.slice(0, 10);
+      localStorage.setItem('pasterryDamaRankings', JSON.stringify(rankings));
+      
+      rankingList.innerHTML = rankings.map((r, i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`;
+        return `<div class="rank-line"><span>${medal} ${r.name}</span><b>${r.score}</b></div>`;
+      }).join('');
+      
+      rankingBox.style.display = 'block';
+      
+      overlayTitle.textContent = "VOCÊ VENCEU!";
+      overlayIcon.textContent = "👑";
+      overlayText.innerHTML = `Parabéns, <b>${playerName}</b>! Você capturou todas as peças!`;
+    } else {
+      overlayTitle.textContent = "Game Over";
+      overlayIcon.textContent = "💥";
+      overlayText.innerHTML = `Não foi dessa vez, <b>${playerName}</b>.<br>Tente novamente!`;
+      rankingBox.style.display = 'none';
+    }
+  } else {
+    overlayTitle.textContent = "FIM DE JOGO!";
+    overlayIcon.textContent = "🏆";
+    overlayText.innerHTML = `O jogador <b>${winner === 'player' ? 'Vermelho' : 'Azul'}</b> venceu a partida!`;
+    rankingBox.style.display = 'none';
+  }
+  
+  startBtn.textContent = "Jogar Novamente";
+  overlay.classList.remove('hidden');
+}
+
+// ==========================================
+// ÁUDIO
+// ==========================================
+let audioCtx;
+function playBeep(freq, type, duration) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+// ==========================================
+// INICIALIZAÇÃO DO JOGO
+// ==========================================
+function initApp() {
+  if (playerName) {
+    inputName.value = playerName;
+    startGameScreen();
+  } else {
+    welcomeScreen.classList.add('active');
+  }
+}
+
+document.getElementById('startJourneyBtn').addEventListener('click', () => {
+  const typedName = inputName.value.trim().toUpperCase();
+  if (!typedName) { alert("Por favor, digite seu nome!"); return; }
+  playerName = typedName;
+  localStorage.setItem('pasterryDamaName', playerName);
+  playBeep(600, 'sine', 0.1);
+  startGameScreen();
+});
+
+function startGameScreen() {
+  welcomeScreen.classList.remove('active');
+  gameScreen.classList.add('active');
+  
+  playerTag.style.display = 'flex';
+  playerTagName.textContent = playerName;
+  
+  overlay.classList.remove('hidden');
+  overlayTitle.textContent = "Pasterry Dama";
+  overlayIcon.textContent = "♟️";
+  overlayText.innerHTML = `Prepare-se, <b>${playerName}</b>!<br>Capture todas as peças do adversário!`;
+  startBtn.textContent = "Jogar";
+  rankingBox.style.display = 'none';
+  
+  startBtn.onclick = () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    resetGame();
+  };
+}
+
+// BOTÕES DE AÇÃO
+document.getElementById('resetGameBtn').addEventListener('click', () => {
+  if (confirm("Tem certeza que deseja reiniciar o jogo?")) {
+    resetGame();
+  }
+});
+
+document.getElementById('backToMenuBtn').addEventListener('click', () => {
+  if (confirm("Voltar ao menu inicial?")) {
+    gameScreen.classList.remove('active');
+    welcomeScreen.classList.add('active');
+    clearTimeout(aiTimer);
+  }
+});
+
+// Inicializa o app
+initApp();
+</script>
+</body>
+</html>
